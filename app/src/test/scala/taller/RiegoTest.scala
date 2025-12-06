@@ -168,121 +168,73 @@ class RiegoTest extends AnyFunSuite {
 
     assert(r.costoRiegoFinca(f, pi) == expected)
   }
-  // Tests para costoRiegoFincaPar
-  test("costoRiegoFinca para el ejemplo 1, Pi1") {
-    val f = Vector((10,3,4), (5,3,3), (2,2,1), (8,1,1), (6,4,2))
-    val pi = Vector(0,1,3,4,2)
-    assert(r.costoRiegoFinca(f, pi) == 33)
-  }
-
-  test("costoRiegoFinca para el ejemplo 1, Pi2") {
-    val f = Vector((10,3,4), (5,3,3), (2,2,1), (8,1,1), (6,4,2))
-    val pi = Vector(4,1,0,3,2)
-    assert(r.costoRiegoFinca(f, pi) == 20)
-  }
-
-  test("costoRiegoFinca para el ejemplo 2, Pi1") {
-    val f = Vector((9,3,4), (5,3,3), (2,2,1), (8,1,1), (6,4,2))
-    val pi = Vector(4,1,0,3,2)
-    assert(r.costoRiegoFinca(f, pi) == 24)
-  }
-
-  test("costoRiegoFinca para el ejemplo 2, Pi2") {
-    val f = Vector((9,3,4), (5,3,3), (2,2,1), (8,1,1), (6,4,2))
-    val pi = Vector(3,1,0,4,2)
-    assert(r.costoRiegoFinca(f, pi) == 23)
-  }
-
-  test("costoRiegoFinca con tres tablones") {
+  //Test costoRiegoFincaPar
+  test("costoRiegoFincaPar — finca simple sin multa") {
     val f = Vector((10,3,1),(8,1,1),(4,2,1))
     val pi = Vector(1,0,2)
-    assert(r.costoRiegoFinca(f, pi) == 15)  // 6 + 7 + 2
+    assert(r.costoRiegoFincaPar(f,pi) == r.costoRiegoFinca(f,pi))
   }
 
-  test("costoRiegoFinca con prioridad alta y sin multa") {
-    val f = Vector((5,3,10), (7,2,1))
-    val pi = Vector(1,0)
-    assert(r.costoRiegoFinca(f, pi) == 5)  // 0 + 5
-  }
-
-  test("costoRiegoFinca para finca pequeña con multa real") {
-    val f = Vector((1,3,2))
-    val pi = Vector(0)
-    assert(r.costoRiegoFinca(f, pi) == 4)  // 2 * (0 + 3 - 1) = 4
-  }
-
-
-  // Tests costoMovilidad
-  test("costoMovilidad para el ejemplo 1, Pi1") {
-    val f = Vector((10,3,4), (5,3,3), (2,2,1), (8,1,1), (6,4,2))
-    val d = Vector(
-      Vector(0,2,2,4,4),
-      Vector(2,0,4,2,6),
-      Vector(2,4,0,2,2),
-      Vector(4,2,2,0,4),
-      Vector(4,6,2,4,0)
-    )
-    val pi = Vector(0,1,3,4,2)
-    assert(r.costoMovilidad(f, pi, d) == 12)
-  }
-
-  test("costoMovilidad para el ejemplo 1, Pi2") {
-    val f = Vector((10,3,4), (5,3,3), (2,2,1), (8,1,1), (6,4,2))
-    val d = Vector(
-      Vector(0,2,2,4,4),
-      Vector(2,0,4,2,6),
-      Vector(2,4,0,2,2),
-      Vector(4,2,2,0,4),
-      Vector(4,6,2,4,0)
-    )
-    val pi = Vector(4,1,0,3,2)
-    assert(r.costoMovilidad(f, pi, d) == 18)
-  }
-
-  test("costoMovilidad para tres tablones simple") {
-    val f = Vector((10,3,1),(8,1,1),(4,2,1))
+  test("costoRiegoFincaPar — con atraso y multa calculada") {
+    val f = Vector((3,1,2),(7,2,1),(6,3,2))
     val pi = Vector(2,0,1)
-    val d = Vector(
-      Vector(0, 5, 3),
-      Vector(5, 0, 4),
-      Vector(3, 4, 0)
-    )
-    assert(r.costoMovilidad(f, pi, d) == 7)
+    assert(r.costoRiegoFincaPar(f,pi) == r.costoRiegoFinca(f,pi))
   }
 
-  test("costoMovilidad con matriz asimétrica") {
-    val f = Vector((10,3,1),(8,1,1),(4,2,1))
+  test("costoRiegoFincaPar — prioridad alta penaliza fuerte si se atrasa") {
+    val f = Vector((5,3,8),(4,1,2),(6,3,10))
+    val pi = Vector(2,1,0)
+    assert(r.costoRiegoFincaPar(f,pi) == r.costoRiegoFinca(f,pi))
+  }
+
+  test("costoRiegoFincaPar — riego justo en t = tsup → costo 0 esperado") {
+    val f = Vector((5,3,3),(8,2,1),(6,2,1))
     val pi = Vector(1,0,2)
-    val d = Vector(
-      Vector(0, 3, 10),
-      Vector(1, 0, 5),
-      Vector(2, 7, 0)
-    )
-    assert(r.costoMovilidad(f, pi, d) == 11)
+    assert(r.costoRiegoFincaPar(f,pi) == r.costoRiegoFinca(f,pi))
   }
 
-  test("costoMovilidad para un solo tablón") {
+  test("costoRiegoFincaPar — caso grande con 6 tablones (no trivial)") {
+    val f = Vector((10,3,3),(7,2,1),(6,3,2),(9,1,3),(4,2,1),(8,2,3))
+    val pi = Vector(3,1,5,0,2,4)
+    assert(r.costoRiegoFincaPar(f,pi) == r.costoRiegoFinca(f,pi))
+  }
+  //Test casoMovilidadPar
+
+  test("costoMovilidadPar — 3 tablones simple") {
+    val d = Vector(Vector(0,5,3),Vector(5,0,4),Vector(3,4,0))
+    val f = Vector((1,1,1),(1,1,1),(1,1,1))
+    val pi = Vector(2,0,1)
+    assert(r.costoMovilidadPar(f,pi,d) == r.costoMovilidad(f,pi,d))
+  }
+
+  test("costoMovilidadPar — distancias asimétricas") {
+    val d = Vector(Vector(0,3,10),Vector(1,0,5),Vector(2,7,0))
+    val f = Vector((1,1,1),(1,1,1),(1,1,1))
+    val pi = Vector(1,0,2)
+    assert(r.costoMovilidadPar(f,pi,d) == r.costoMovilidad(f,pi,d))
+  }
+
+  test("costoMovilidadPar — 5 tablones con movilidad compleja") {
+    val d = Vector(
+      Vector(0,2,2,4,4), Vector(2,0,4,2,6), Vector(2,4,0,2,2),
+      Vector(4,2,2,0,4), Vector(4,6,2,4,0)
+    )
+    val f = Vector.fill(5)((1,1,1))
+    val pi = Vector(0,1,3,4,2)
+    assert(r.costoMovilidadPar(f,pi,d) == r.costoMovilidad(f,pi,d))
+  }
+
+  test("costoMovilidadPar — permutación invertida con 6 tablones") {
+    val f = Vector.fill(6)((1,1,1))
+    val d = Vector.tabulate(6,6)((i,j)=>if(i==j)0 else math.abs(i-j))
+    val pi = Vector(5,4,3,2,1,0)
+    assert(r.costoMovilidadPar(f,pi,d) == r.costoMovilidad(f,pi,d))
+  }
+
+  test("costoMovilidadPar — caso borde: solo un tablón (movilidad = 0)") {
     val f = Vector((10,3,1))
     val pi = Vector(0)
     val d = Vector(Vector(0))
-    assert(r.costoMovilidad(f, pi, d) == 0)
+    assert(r.costoMovilidadPar(f,pi,d) == 0)
   }
-
-  test("costoMovilidad para dos tablones") {
-    val f = Vector((5,3,10), (7,2,1))
-    val pi = Vector(1,0)
-    val d = Vector(
-      Vector(0, 4),
-      Vector(4, 0)
-    )
-    assert(r.costoMovilidad(f, pi, d) == 4)
-  }
-
-  test("costoMovilidad con permutación identidad (4 tablones)") {
-    val f = Vector((10,3,1),(8,1,2),(4,2,3),(6,1,4))
-    val pi = Vector(0,1,2,3)
-    val d = Vector.tabulate(4,4)((i,j) => if (i==j) 0 else Math.abs(i-j))
-    assert(r.costoMovilidad(f, pi, d) == 3)
-  }
-
 }

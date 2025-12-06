@@ -109,30 +109,32 @@ class Riego {
   }
   def costoRiegoFincaPar(f: Finca, pi: ProgRiego): Int = {
     import scala.collection.parallel.CollectionConverters._
-    val perm = progToPermPure(pi)
-    val tstarts = tIR_fromPerm(f, perm) // calcular tIR una vez
 
-    (0 until f.length).toVector.par.map { i =>
-      val t = tstarts(i)
-      val tsi = tsup(f,i)
-      val tri = treg(f,i)
+    val perm    = progToPermPure(pi)
+    val tstarts = tIR_fromPerm(f, perm)
 
-      if (tsi - tri >= t) tsi - (t + tri)
-      else prio(f,i) * ((t + tri) - tsi)
+    (0 until f.length).par.map { i =>
+      val t   = tstarts(i)
+      val ts  = tsup(f,i)
+      val tr  = treg(f,i)
+      val p   = prio(f,i)
+
+      if (ts - tr >= t) ts - (t + tr)
+      else p * ((t + tr) - ts)
     }.sum
   }
+
   def costoMovilidadPar(f: Finca, pi: ProgRiego, d: Distancia): Int = {
     import scala.collection.parallel.CollectionConverters._
 
     val perm = progToPermPure(pi)
-    val n = perm.length
+    val n    = perm.length
 
     if (n <= 1) 0
     else {
-      (0 until (n - 1)).toVector.par
-        .map(j => d(perm(j))(perm(j + 1)))
-        .sum
+      (0 until n-1).par.map(j => d(perm(j))(perm(j+1))).sum
     }
   }
+
 
 }
