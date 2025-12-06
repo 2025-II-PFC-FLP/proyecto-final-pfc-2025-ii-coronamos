@@ -10,7 +10,7 @@
 
 | Nombre Completo | Código | Rol            | Correo Electrónico        |
 | --------------- | ------ | -------------- | ------------------------- |
-| [Estudiante 1]  | 123456 | [Líder/Colab.] | [correo1@institucion.edu] |
+| [JUAN FELIPE RUIZ]  | 2359397 | [Líder/Colab.] | [juan.ruiz.lopez@correounivalle.edu.co] |
 | [Estudiante 2]  | 123457 | [Colaborador]  | [correo2@institucion.edu] |
 | [Estudiante 3]  | 123458 | [Colaborador]  | [correo3@institucion.edu] |
 
