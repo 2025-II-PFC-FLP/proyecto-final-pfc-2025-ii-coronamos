@@ -1,8 +1,8 @@
 [![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/h71fa0_C)
-# Asignación: [Nombre de la asignación]
+# Asignación: [Proyecto final]
 
-**Fecha:** [DD/MM/AAAA]
-**Curso:** [Nombre del Curso]
+**Fecha:** [07/12/2025]
+**Curso:** [FUNDAMENTOS DE PROGRAMACIÓN FUNCIONAL Y CONCURRENTE-50]
 
 ---
 
@@ -10,13 +10,12 @@
 
 | Nombre Completo     | Código  | Rol            | Correo Electrónico                        |
 |---------------------|---------| -------------- |-------------------------------------------|
-| [JUAN FELIPE RUIZ]  | 2359397 | [Líder/Colab.] | [juan.ruiz.lopez@correounivalle.edu.co]   |
-| [Juan Diego Ospina] | 2359486 | [Colaborador]  | [juan.diego.ospina@correounivalle.edu.co] |
+| [Juan Felipe Ruiz]  | 2359397 | [Colaborador] | [juan.ruiz.lopez@correounivalle.edu.co]   |
+| [Juan Diego Ospina] | 2359486 | [Líder/Colab.]  | [juan.diego.ospina@correounivalle.edu.co] |
 | [Estudiante 3]      | 123458  | [Colaborador]  | [correo3@institucion.edu]                 |
 
 ---
 
 ## 📌 Descripción de la Asignación
 
-[Breve párrafo explicando el propósito y objetivos del taller (4-6 líneas). Ejemplo:]
-_"Este taller busca analizar [tema principal] mediante [metodología]. Los objetivos incluyen [objetivo 1], [objetivo 2] y [objetivo 3], aplicando conceptos vistos en clase como [concepto relevante]."_
+Este taller tiene como propósito analizar y resolver el problema del riego óptimo mediante un enfoque completamente funcional y concurrente. El objetivo es modelar la finca, calcular costos de riego y movilidad, generar programaciones posibles y determinar la programación óptima usando técnicas de recursión, funciones de alto orden y paralelización. Además, se busca aplicar conceptos vistos en clase como procesos recursivos, análisis de corrección, paralelismo de datos y tareas, y evaluación comparativa del desempeño.

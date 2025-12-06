@@ -52,4 +52,120 @@ class RiegoTest extends AnyFunSuite {
     assert(r.costoRiegoFinca(f, pi) == expected)
   }
 
+  test("costoMovilidad ejemplo simple") {
+    val r = new Riego()
+
+    val f = Vector((10,3,1),(8,1,1),(4,2,1))
+    val pi = Vector(2,0,1)
+
+    val d = Vector(
+      Vector(0, 5, 3),
+      Vector(5, 0, 4),
+      Vector(3, 4, 0)
+    )
+
+    // perm = orden por turnos
+    // pi = Vector(2,0,1)  → perm = Vector(1,2,0)
+    // movilidad = d(1)(2) + d(2)(0) = 4 + 3 = 7
+
+    assert(r.costoMovilidad(f, pi, d) == 7)
+  }
+
+  test("generarProgramacionesRiego para finca de 3 tablones") {
+    val r = new Riego()
+
+    val f = Vector(
+      (10,3,1),
+      (8,1,2),
+      (4,2,3)
+    )
+
+    val progs = r.generarProgramacionesRiego(f)
+
+    assert(progs.length == 6)   // 3! = 6 permutaciones
+
+    assert(progs.contains(Vector(0,1,2)))
+    assert(progs.contains(Vector(0,2,1)))
+    assert(progs.contains(Vector(1,0,2)))
+    assert(progs.contains(Vector(1,2,0)))
+    assert(progs.contains(Vector(2,0,1)))
+    assert(progs.contains(Vector(2,1,0)))
+  }
+
+  test("ProgramacionRiegoOptimo encuentra la mejor programación") {
+    val r = new Riego()
+
+    val f = Vector(
+      (10,3,1),
+      (8,1,1),
+      (4,2,1)
+    )
+
+    val d = Vector(
+      Vector(0, 2, 4),
+      Vector(2, 0, 6),
+      Vector(4, 6, 0)
+    )
+
+    val (optPi, costo) = r.ProgramacionRiegoOptimo(f, d)
+
+    assert(optPi.toSet == Set(0,1,2))
+
+    val todas = r.generarProgramacionesRiego(f)
+    val minCosto = todas.map(pi => r.costoRiegoFinca(f, pi) + r.costoMovilidad(f, pi, d)).min
+
+    assert(costo == minCosto)
+  }
+
+  test("costoMovilidad con matriz de distancias asimétrica") {
+    val r = new Riego()
+
+    val f = Vector((10,3,1),(8,1,1),(4,2,1))
+    val pi = Vector(1,0,2)
+
+    val d = Vector(
+      Vector(0, 3, 10),
+      Vector(1, 0, 5),
+      Vector(2, 7, 0)
+    )
+
+    // perm = Vector(1,0,2)
+    // movilidad = d(1)(0) + d(0)(2) = 1 + 10 = 11
+    assert(r.costoMovilidad(f, pi, d) == 11)
+  }
+
+  test("generarProgramacionesRiego con 4 tablones produce 24 permutaciones") {
+    val r = new Riego()
+
+    val f = Vector(
+      (10,3,1),(8,1,2),(4,2,3),(6,1,4)
+    )
+
+    val progs = r.generarProgramacionesRiego(f)
+
+    assert(progs.length == 24)
+    assert(progs.contains(Vector(0,1,2,3)))
+    assert(progs.contains(Vector(3,2,1,0)))
+  }
+
+  test("costoRiegoFinca con prioridad alta (multas grandes)") {
+    val r = new Riego()
+
+    val f = Vector(
+      (5,3,10),  // prioridad muy alta
+      (7,2,1)
+    )
+
+    val pi = Vector(1,0)
+
+    // Calculamos manualmente:
+    // perm = Vector(1,0)
+    // tIR = Vector(2,0)
+    // Tablón 0: tsup=5, treg=3 → fin=2+3=5 → (llega justo) costo = 0
+    // Tablón 1: tsup=7, treg=2 → fin=0+2=2 → riega antes → costo = 7 - 2 = 5
+
+    val expected = 5
+
+    assert(r.costoRiegoFinca(f, pi) == expected)
+  }
 }
