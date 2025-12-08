@@ -237,4 +237,116 @@ class RiegoTest extends AnyFunSuite {
     val d = Vector(Vector(0))
     assert(r.costoMovilidadPar(f,pi,d) == 0)
   }
+  test("generarProgramacionesRiegoPar — igualdad con versión secuencial (3 tablones)") {
+    val r = new Riego()
+
+    val f = Vector(
+      (10,3,1),
+      (8,1,2),
+      (4,2,3)
+    )
+
+    val seq = r.generarProgramacionesRiego(f)
+    val par = r.generarProgramacionesRiegoPar(f)
+
+    assert(par.toSet == seq.toSet)
+    assert(par.length == seq.length)
+    assert(par.length == 6) // 3! = 6
+  }
+  test("generarProgramacionesRiegoPar — igualdad con versión secuencial (4 tablones)") {
+    val r = new Riego()
+
+    val f = Vector(
+      (10,3,1), (8,1,2), (4,2,3), (6,1,4)
+    )
+
+    val seq = r.generarProgramacionesRiego(f)
+    val par = r.generarProgramacionesRiegoPar(f)
+
+    assert(par.toSet == seq.toSet)
+    assert(par.length == seq.length)
+    assert(par.length == 24) // 4! = 24
+  }
+  test("generarProgramacionesRiegoPar — incluye permutaciones específicas") {
+    val r = new Riego()
+
+    val f = Vector(
+      (5,2,1), (7,1,2), (3,1,3)
+    )
+
+    val par = r.generarProgramacionesRiegoPar(f)
+
+    assert(par.contains(Vector(0,1,2)))
+    assert(par.contains(Vector(2,1,0)))
+  }
+  test("ProgramacionRiegoOptimoPar — mismo costo que la versión secuencial") {
+    val r = new Riego()
+
+    val f = Vector(
+      (10,3,1),
+      (8,1,1),
+      (4,2,1)
+    )
+
+    val d = Vector(
+      Vector(0, 2, 4),
+      Vector(2, 0, 6),
+      Vector(4, 6, 0)
+    )
+
+    val (piSeq, costoSeq) = r.ProgramacionRiegoOptimo(f, d)
+    val (piPar, costoPar) = r.ProgramacionRiegoOptimoPar(f, d)
+
+    assert(costoSeq == costoPar)
+    assert(piPar.toSet == piSeq.toSet)
+  }
+  test("ProgramacionRiegoOptimoPar — encuentra un óptimo válido") {
+    val r = new Riego()
+
+    val f = Vector(
+      (5,3,3),
+      (8,2,1),
+      (6,2,1),
+      (4,3,2)
+    )
+
+    val d = Vector(
+      Vector(0,1,4,3),
+      Vector(1,0,2,5),
+      Vector(4,2,0,6),
+      Vector(3,5,6,0)
+    )
+
+    val todas = r.generarProgramacionesRiego(f)
+
+    val minCosto = todas.map(pi =>
+      r.costoRiegoFinca(f, pi) + r.costoMovilidad(f, pi, d)
+    ).min
+
+    val (_, costoPar) = r.ProgramacionRiegoOptimoPar(f, d)
+
+    assert(costoPar == minCosto)
+  }
+  test("ProgramacionRiegoOptimoPar — funciona con distancias asimétricas") {
+    val r = new Riego()
+
+    val f = Vector(
+      (10,3,1),
+      (8,1,1),
+      (4,2,1)
+    )
+
+    val d = Vector(
+      Vector(0, 3, 10),
+      Vector(1, 0, 5),
+      Vector(2, 7, 0)
+    )
+
+    val (piSeq, costoSeq) = r.ProgramacionRiegoOptimo(f, d)
+    val (piPar, costoPar) = r.ProgramacionRiegoOptimoPar(f, d)
+
+    assert(costoSeq == costoPar)
+    assert(piPar.toSet == Set(0,1,2))
+  }
+
 }
