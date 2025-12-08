@@ -3,8 +3,8 @@ ProgramacionRiegoOptimoPar
 1. Definición de la función
 
 
-def ProgramacionRiegoOptimoPar(f: Finca, d: Distancia): (ProgRiego, Int) = {
-val progs: Vector[ProgRiego] = generarProgramacionesRiegoPar(f)
+$def ProgramacionRiegoOptimoPar$$(f: Finca, d: Distancia)$: $(ProgRiego, Int)$ = {
+$val progs$: Vector$[ProgRiego]$ = $generarProgramacionesRiegoPar$$(f)$
 
 $
 val costos = progs.par.map { pi =>
@@ -14,7 +14,7 @@ val costoTotal = costoRiegoFincaPar(f, pi) + costoMovilidadPar(f, pi, d)
 $
 
 
-costos.minBy(_._2)
+$costos$.$minBy$_._2
 
 
 
@@ -215,9 +215,9 @@ cuando ambos conjuntos se comparan como conjuntos matemáticos.
 La función:
 
 genera exactamente todas las permutaciones de los tablones, no introduce duplicados,
-distribuye el trabajo de forma paralela entre los elementos de \(B\),
+distribuye el trabajo de forma paralela entre los elementos de $(B$),
 cumple con las restricciones del paradigma funcional,
-sigue literalmente la definición matemática del conjunto \(S_n\).
+sigue literalmente la definición matemática del conjunto $(S_n)$.
 
 
     
