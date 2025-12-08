@@ -64,10 +64,6 @@ class RiegoTest extends AnyFunSuite {
       Vector(3, 4, 0)
     )
 
-    // perm = orden por turnos
-    // pi = Vector(2,0,1)  → perm = Vector(1,2,0)
-    // movilidad = d(1)(2) + d(2)(0) = 4 + 3 = 7
-
     assert(r.costoMovilidad(f, pi, d) == 7)
   }
 
@@ -128,9 +124,6 @@ class RiegoTest extends AnyFunSuite {
       Vector(1, 0, 5),
       Vector(2, 7, 0)
     )
-
-    // perm = Vector(1,0,2)
-    // movilidad = d(1)(0) + d(0)(2) = 1 + 10 = 11
     assert(r.costoMovilidad(f, pi, d) == 11)
   }
 
@@ -152,17 +145,11 @@ class RiegoTest extends AnyFunSuite {
     val r = new Riego()
 
     val f = Vector(
-      (5,3,10),  // prioridad muy alta
+      (5,3,10),
       (7,2,1)
     )
 
     val pi = Vector(1,0)
-
-    // Calculamos manualmente:
-    // perm = Vector(1,0)
-    // tIR = Vector(2,0)
-    // Tablón 0: tsup=5, treg=3 → fin=2+3=5 → (llega justo) costo = 0
-    // Tablón 1: tsup=7, treg=2 → fin=0+2=2 → riega antes → costo = 7 - 2 = 5
 
     val expected = 5
 
