@@ -1,4 +1,5 @@
 package taller
+import scala.collection.parallel.CollectionConverters._
 
 class Riego {
 
@@ -135,6 +136,24 @@ class Riego {
       (0 until n-1).par.map(j => d(perm(j))(perm(j+1))).sum
     }
   }
+  def generarProgramacionesRiegoPar(f: Finca): Vector[ProgRiego] = {
+    val n = f.length
+    val base: Vector[Int] = (0 until n).toVector
 
+    base.par.flatMap { i =>
+      val resto: Vector[Int] = base.filter(j => j != i)
+      resto.permutations.map(perm => i +: perm).toVector
+    }.toVector
+  }
+  def ProgramacionRiegoOptimoPar(f: Finca, d: Distancia): (ProgRiego, Int) = {
+    val progs: Vector[ProgRiego] = generarProgramacionesRiegoPar(f)
+
+    val costos = progs.par.map { pi =>
+      val costoTotal = costoRiegoFincaPar(f, pi) + costoMovilidadPar(f, pi, d)
+      (pi, costoTotal)
+    }
+
+    costos.minBy(_._2)
+  }
 
 }
