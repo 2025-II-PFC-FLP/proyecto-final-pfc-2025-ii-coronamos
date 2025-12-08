@@ -45,13 +45,13 @@ Las funciones implementadas son:
 
 Dada una programación `pi`, se obtiene la permutación `perm` vía `progToPermPure` (sort por prioridad). Luego, `tIR_fromPerm` usa recursión tail (`go`) para acumular `timesByTurn` (tiempos por turno). Finalmente, reasigna por turno del tablón.
 
-**Ejemplo (n=3):** Finca: $ f = [(10,3,1),(8,1,1),(4,2,1)] $ (treg = [3,1,2]). Programación: $ \pi = \langle 2,0,1 \rangle $.  
-`progToPermPure(pi)` produce: $ perm = \langle 1,2,0 \rangle $ (prioridad baja primero).  
+**Ejemplo (n=3):** Finca: $f = [(10,3,1),(8,1,1),(4,2,1)]$ (treg = [3,1,2]). Programación: $\pi = \langle 2,0,1 \rangle$.  
+`progToPermPure(pi)` produce: $perm = \langle 1,2,0 \rangle$ (prioridad baja primero).  
 Construcción de `timesByTurn` (recursión tail):
 - `go(0, 0, [])` → `timesByTurn[0] = 0` (turno 0: tablón 1, treg=1).
 - `go(1, 1, [0])` → `timesByTurn[1] = 1` (turno 1: tablón 2, treg=2).
 - `go(2, 3, [0,1])` → `timesByTurn[2] = 3` (turno 2: tablón 0, treg=3).  
-  Turnos: $ \langle 2,0,1 \rangle $ → `tIR = \langle 3,0,1 \rangle $.
+  Turnos: $\langle 2,0,1 \rangle$ → `tIR = \langle 3,0,1 \rangle$.
 
 #### **Diagrama de pila de llamadas (`tIR_fromPerm` — recursión tail)**
 
@@ -135,7 +135,7 @@ Se argumenta la corrección de las funciones clave usando notación matemática.
 
 ### **2.1 Notación**
 
-$ F = \langle T_0, \dots, T_{n-1} \rangle $, $ T_i = (ts_i, tr_i, p_i) $.  
+$F = \langle T_0, \dots, T_{n-1} \rangle $, $ T_i = (ts_i, tr_i, p_i) $.  
 $ B = \{0,\dots,n-1\} $, $ S_n $ = permutaciones de B.  
 $ \Pi = \langle \pi_0, \dots, \pi_{n-1} \rangle $ programación (prioridades).  
 $ \sigma = \text{progToPermPure}(\Pi) $: permutación de ejecución (sort asc por $\pi$).
@@ -178,7 +178,7 @@ Código: Traducción literal (`if (tsi - tri >= t)`). Correcto (asimétrico: pen
 
 $ Costo(F,\Pi) = \sum_i C_i $. Código: `map.sum` exacto. Correcto (lineal).
 
-**Prueba:** `f` arriba, `\pi=[1,0,2]` → 15 (6+7+2 por tablones).
+**Prueba:** `f` arriba, $\pi=[1,0,2]$ → 15 (6+7+2 por tablones).
 
 #### **2.4.4 `costoMovilidad`**
 
@@ -195,14 +195,14 @@ Igual a 2.3 (seq). Correcto por exhaustividad.
 
 ### **2.5 Conjunto de pruebas (del código `RiegoTest`)**
 
-| Función                  | Input                                      | Esperado     | Obtenido (código) | Pasa? |
-|--------------------------|--------------------------------------------|--------------|-------------------|-------|
-| `tIR`                    | f arriba, π=[2,0,1]                        | [3,0,1]     | [3,0,1]          | Sí    |
-| `costoRiegoFinca`        | f arriba, π=[1,0,2]                        | 15          | 15               | Sí    |
-| `costoMovilidad`         | f arriba, π=[2,0,1], d=[[0,5,3],[5,0,4],[3,4,0]] | 7           | 7                | Sí    |
-| `generarProgramacionesRiego` | n=3                                       | 6 progs     | 6                | Sí    |
-| `ProgramacionRiegoOptimo` | f arriba, d=[[0,2,4],[2,0,6],[4,6,0]]     | (π con min, minCosto) | Óptimo válido    | Sí    |
-| Igualdad Par/Seq         | n=4                                        | Sets iguales| Sí               | Sí    |
+| Función                        | Input                                                                 | Esperado                  | Obtenido (código)         | Pasa? |
+|--------------------------------|-----------------------------------------------------------------------|---------------------------|---------------------------|-------|
+| `tIR`                          | f arriba, π=[2,0,1]                                                   | [3,0,1]                   | [3,0,1]                   | Sí    |
+| `costoRiegoFinca`              | f arriba, π=[1,0,2]                                                   | 15                        | 15                        | Sí    |
+| `costoMovilidad`               | f arriba, π=[2,0,1], d=[[0,5,3],[5,0,4],[3,4,0]]                     | 7                         | 7                         | Sí    |
+| `generarProgramacionesRiego`   | n=3                                                                   | 6 progs                   | 6                         | Sí    |
+| `ProgramacionRiegoOptimo`      | f arriba, d=[[0,2,4],[2,0,6],[4,6,0]]                                | (π con min, minCosto)     | Óptimo válido             | Sí    |
+| Igualdad Par/Seq               | n=4                                                                   | Sets iguales              | Sí                        | Sí    |  
 
 Todas pasan; cubren edges (n=1=0, asimetría).
 
@@ -217,7 +217,6 @@ Se usó `scala.collection.parallel.CollectionConverters._` para `.par` en:
 - Generación: `generarProgramacionesRiegoPar` (outer `base.par.flatMap`; inner recursión seq).
 - Optimización: `ProgramacionRiegoOptimoPar` (gen par + eval `.par.map` de n! items).  
   Inmutabilidad de `Vector` asegura thread-safety sin locks.
-
 
 ---
 
@@ -330,17 +329,18 @@ def ProgramacionRiegoOptimo(f: Finca, d: Distancia): (ProgRiego, Int) = {
 
   evaluaciones.minBy(_._2)
 }
+
 def costoRiegoFincaPar(f: Finca, pi: ProgRiego): Int = {
   import scala.collection.parallel.CollectionConverters._
 
-  val perm    = progToPermPure(pi)
+  val perm = progToPermPure(pi)
   val tstarts = tIR_fromPerm(f, perm)
 
   (0 until f.length).par.map { i =>
-    val t   = tstarts(i)
-    val ts  = tsup(f,i)
-    val tr  = treg(f,i)
-    val p   = prio(f,i)
+    val t = tstarts(i)
+    val ts = tsup(f,i)
+    val tr = treg(f,i)
+    val p = prio(f,i)
 
     if (ts - tr >= t) ts - (t + tr)
     else p * ((t + tr) - ts)
@@ -351,13 +351,14 @@ def costoMovilidadPar(f: Finca, pi: ProgRiego, d: Distancia): Int = {
   import scala.collection.parallel.CollectionConverters._
 
   val perm = progToPermPure(pi)
-  val n    = perm.length
+  val n = perm.length
 
   if (n <= 1) 0
   else {
     (0 until n-1).par.map(j => d(perm(j))(perm(j+1))).sum
   }
 }
+
 def generarProgramacionesRiegoPar(f: Finca): Vector[ProgRiego] = {
   val n = f.length
   val base: Vector[Int] = (0 until n).toVector
@@ -367,6 +368,7 @@ def generarProgramacionesRiegoPar(f: Finca): Vector[ProgRiego] = {
     resto.permutations.map(perm => i +: perm).toVector
   }.toVector
 }
+
 def ProgramacionRiegoOptimoPar(f: Finca, d: Distancia): (ProgRiego, Int) = {
   val progs: Vector[ProgRiego] = generarProgramacionesRiegoPar(f)
 
@@ -376,8 +378,6 @@ def ProgramacionRiegoOptimoPar(f: Finca, d: Distancia): (ProgRiego, Int) = {
   }
 
   costos.minBy(_._2)
-}
-
 }
 ```
 
@@ -445,7 +445,7 @@ class RiegoTest extends AnyFunSuite {
     )
 
     // perm = orden por turnos
-    // pi = Vector(2,0,1)  → perm = Vector(1,2,0)
+    // pi = Vector(2,0,1) → perm = Vector(1,2,0)
     // movilidad = d(1)(2) + d(2)(0) = 4 + 3 = 7
 
     assert(r.costoMovilidad(f, pi, d) == 7)
@@ -462,7 +462,7 @@ class RiegoTest extends AnyFunSuite {
 
     val progs = r.generarProgramacionesRiego(f)
 
-    assert(progs.length == 6)   // 3! = 6 permutaciones
+    assert(progs.length == 6) // 3! = 6 permutaciones
 
     assert(progs.contains(Vector(0,1,2)))
     assert(progs.contains(Vector(0,2,1)))
@@ -532,7 +532,7 @@ class RiegoTest extends AnyFunSuite {
     val r = new Riego()
 
     val f = Vector(
-      (5,3,10),  // prioridad muy alta
+      (5,3,10), // prioridad muy alta
       (7,2,1)
     )
 
@@ -548,7 +548,8 @@ class RiegoTest extends AnyFunSuite {
 
     assert(r.costoRiegoFinca(f, pi) == expected)
   }
-  //Test costoRiegoFincaPar
+
+  // Test costoRiegoFincaPar
   test("costoRiegoFincaPar — finca simple sin multa") {
     val f = Vector((10,3,1),(8,1,1),(4,2,1))
     val pi = Vector(1,0,2)
@@ -578,8 +579,8 @@ class RiegoTest extends AnyFunSuite {
     val pi = Vector(3,1,5,0,2,4)
     assert(r.costoRiegoFincaPar(f,pi) == r.costoRiegoFinca(f,pi))
   }
-  //Test casoMovilidadPar
 
+  // Test casoMovilidadPar
   test("costoMovilidadPar — 3 tablones simple") {
     val d = Vector(Vector(0,5,3),Vector(5,0,4),Vector(3,4,0))
     val f = Vector((1,1,1),(1,1,1),(1,1,1))
@@ -617,6 +618,7 @@ class RiegoTest extends AnyFunSuite {
     val d = Vector(Vector(0))
     assert(r.costoMovilidadPar(f,pi,d) == 0)
   }
+
   test("generarProgramacionesRiegoPar — igualdad con versión secuencial (3 tablones)") {
     val r = new Riego()
 
@@ -633,6 +635,7 @@ class RiegoTest extends AnyFunSuite {
     assert(par.length == seq.length)
     assert(par.length == 6) // 3! = 6
   }
+
   test("generarProgramacionesRiegoPar — igualdad con versión secuencial (4 tablones)") {
     val r = new Riego()
 
@@ -647,6 +650,7 @@ class RiegoTest extends AnyFunSuite {
     assert(par.length == seq.length)
     assert(par.length == 24) // 4! = 24
   }
+
   test("generarProgramacionesRiegoPar — incluye permutaciones específicas") {
     val r = new Riego()
 
@@ -659,6 +663,7 @@ class RiegoTest extends AnyFunSuite {
     assert(par.contains(Vector(0,1,2)))
     assert(par.contains(Vector(2,1,0)))
   }
+
   test("ProgramacionRiegoOptimoPar — mismo costo que la versión secuencial") {
     val r = new Riego()
 
@@ -680,6 +685,7 @@ class RiegoTest extends AnyFunSuite {
     assert(costoSeq == costoPar)
     assert(piPar.toSet == piSeq.toSet)
   }
+
   test("ProgramacionRiegoOptimoPar — encuentra un óptimo válido") {
     val r = new Riego()
 
@@ -707,6 +713,7 @@ class RiegoTest extends AnyFunSuite {
 
     assert(costoPar == minCosto)
   }
+
   test("ProgramacionRiegoOptimoPar — funciona con distancias asimétricas") {
     val r = new Riego()
 
@@ -730,7 +737,6 @@ class RiegoTest extends AnyFunSuite {
   }
 
 }
-
 ```
 
 Todas las pruebas pasan, confirmando corrección y equivalencia.
