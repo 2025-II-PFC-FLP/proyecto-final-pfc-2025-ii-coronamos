@@ -171,4 +171,53 @@ flowchart TD
     G --> H["minBy(_._2)"]
     H --> I["return (π*, costo_mínimo)"]
 ```
+7. Casos de prueba
+
+Caso 1: finca de 3 tablones
+
+Sea:
+$
+B = \langle 0,1,2 \rangle, \qquad |S_3| = 6
+$
+
+Permutaciones esperadas:
+$
+\{
+\langle 0,1,2\rangle,\;
+\langle 0,2,1\rangle,\;
+\langle 1,0,2\rangle,\;
+\langle 1,2,0\rangle,\;
+\langle 2,0,1\rangle,\;
+\langle 2,1,0\rangle
+\}
+$
+
+Caso 2: finca de 4 tablones
+
+$
+|S_4| = 24
+$
+
+La función debe generar exactamente 24 permutaciones, sin repeticiones.
+
+Caso 3: igualdad con la versión secuencial
+
+$
+\text{generarProgramacionesRiegoPar}(f)
+\;\equiv\;
+\text{generarProgramacionesRiego}(f)
+$
+
+cuando ambos conjuntos se comparan como conjuntos matemáticos.
+
+8. Conclusión
+
+La función:
+
+genera exactamente todas las permutaciones de los tablones, no introduce duplicados,
+distribuye el trabajo de forma paralela entre los elementos de \(B\),
+cumple con las restricciones del paradigma funcional,
+sigue literalmente la definición matemática del conjunto \(S_n\).
+
+
     
