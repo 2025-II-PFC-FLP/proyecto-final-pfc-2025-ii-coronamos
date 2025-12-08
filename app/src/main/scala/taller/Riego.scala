@@ -20,13 +20,12 @@ class Riego {
   }
 
   def progIndexOfPerm(perm: Vector[Int]): Vector[Int] = {
-    val arr = Array.fill(perm.length)(0)
-    for (turno <- perm.indices) {
-      val idx = perm(turno)
-      arr(idx) = turno
+    perm.zipWithIndex.foldLeft(Vector.fill(perm.length)(0)) {
+      case (acc, (tablon, turno)) =>
+        acc.updated(tablon, turno)
     }
-    arr.toVector
   }
+
 
   def tIR_fromPerm(f: Finca, perm: Vector[Int]): TiempoInicioRiego = {
     val n = f.length
@@ -137,14 +136,29 @@ class Riego {
     }
   }
   def generarProgramacionesRiegoPar(f: Finca): Vector[ProgRiego] = {
-    val n = f.length
-    val base: Vector[Int] = (0 until n).toVector
+    val base = (0 until f.length).toVector
 
-    base.par.flatMap { i =>
-      val resto: Vector[Int] = base.filter(j => j != i)
-      resto.permutations.map(perm => i +: perm).toVector
-    }.toVector
+    def perms(v: Vector[Int]): Vector[Vector[Int]] =
+      if (v.isEmpty) Vector(Vector())
+      else
+        v.indices.toVector.flatMap { i =>
+          val elem = v(i)
+          val resto = v.patch(i, Nil, 1)
+          perms(resto).map(elem +: _)
+        }
+
+    val topLevel: Vector[Vector[Int]] =
+      base.indices.par
+        .flatMap { i =>
+          val elem = base(i)
+          val resto = base.patch(i, Nil, 1)
+          perms(resto).map(elem +: _)
+        }
+        .toVector
+
+    topLevel.map(permToProg)
   }
+
   def ProgramacionRiegoOptimoPar(f: Finca, d: Distancia): (ProgRiego, Int) = {
     val progs: Vector[ProgRiego] = generarProgramacionesRiegoPar(f)
 
