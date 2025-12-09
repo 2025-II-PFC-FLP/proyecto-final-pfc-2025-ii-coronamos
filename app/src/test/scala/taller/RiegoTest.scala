@@ -9,331 +9,340 @@ class RiegoTest extends AnyFunSuite {
 
   val r = new Riego()
 
-  test("tIR con tres tablones ejemplo 1") {
+  test("tIR — ejemplo básico") {
     val f = Vector((10,3,1),(8,1,1),(4,2,1))
     val pi = Vector(2,0,1)
-    assert(r.tIR(f, pi) == Vector(3,0,1))
+    assert(r.tIR(f,pi) == Vector(3,0,1))
   }
 
-  test("tIR con treg variados") {
+  test("tIR — todas iguales") {
+    val f = Vector((5,1,1),(5,1,1),(5,1,1))
+    val pi = Vector(0,1,2)
+    assert(r.tIR(f,pi) == Vector(0,1,2))
+  }
+
+  test("tIR — turnos invertidos") {
+    val f = Vector((4,2,1),(4,2,1),(4,2,1))
+    val pi = Vector(2,1,0)
+    assert(r.tIR(f,pi) == Vector(4,2,0))
+  }
+
+  test("tIR — diferentes treg") {
     val f = Vector((10,4,1),(5,2,1),(3,1,1))
     val pi = Vector(1,2,0)
-    assert(r.tIR(f, pi) == Vector(1,5,0))
+    assert(r.tIR(f,pi) == Vector(1,5,0))
   }
 
-  test("costoRiegoTablon sin multa (se riega antes del tsup)") {
+  test("tIR — finca de 1 tablon") {
+    val f = Vector((10,3,1))
+    val pi = Vector(0)
+    assert(r.tIR(f,pi) == Vector(0))
+  }
+
+  test("costoRiegoTablon — sin multa") {
     val f = Vector((5,3,1))
-    val pi = Vector(0)
-    assert(r.costoRiegoTablon(0, f, pi) == 2)
+    assert(r.costoRiegoTablon(0,f,Vector(0)) == 2)
   }
 
-  test("costoRiegoTablon sin multa con prioridad alta") {
+  test("costoRiegoTablon — con prioridad alta") {
     val f = Vector((4,3,4))
-    val pi = Vector(0)
-    assert(r.costoRiegoTablon(0, f, pi) == 1)
+    assert(r.costoRiegoTablon(0,f,Vector(0)) == 1)
   }
 
-  test("costoRiegoTablon con multa (riego tardío)") {
+  test("costoRiegoTablon — con multa simple") {
     val f = Vector((3,1,2))
+    assert(r.costoRiegoTablon(0,f,Vector(0)) == 2)
+  }
+
+  test("costoRiegoTablon — riego justo a tiempo") {
+    val f = Vector((5,3,3))
+    assert(r.costoRiegoTablon(0,f,Vector(0)) == 2)
+  }
+
+  test("costoRiegoTablon — multas grandes") {
+    val f = Vector((10,1,10))
     val pi = Vector(0)
-    assert(r.costoRiegoTablon(0,f,pi) == 2)
+    assert(r.costoRiegoTablon(0,f,pi) >= 0)
   }
 
-  test("costoRiegoFinca ejemplo básico") {
-    val f = Vector(
-      (10,3,1),
-      (8,1,1),
-      (4,2,1)
-    )
-    val pi = Vector(1,0,2)
-
-    val expected = 6 + 7 + 2
-
-    assert(r.costoRiegoFinca(f, pi) == expected)
-  }
-
-  test("costoMovilidad ejemplo simple") {
-    val r = new Riego()
-
-    val f = Vector((10,3,1),(8,1,1),(4,2,1))
-    val pi = Vector(2,0,1)
-
-    val d = Vector(
-      Vector(0, 5, 3),
-      Vector(5, 0, 4),
-      Vector(3, 4, 0)
-    )
-
-    assert(r.costoMovilidad(f, pi, d) == 7)
-  }
-
-  test("generarProgramacionesRiego para finca de 3 tablones") {
-    val r = new Riego()
-
-    val f = Vector(
-      (10,3,1),
-      (8,1,2),
-      (4,2,3)
-    )
-
-    val progs = r.generarProgramacionesRiego(f)
-
-    assert(progs.length == 6)   // 3! = 6 permutaciones
-
-    assert(progs.contains(Vector(0,1,2)))
-    assert(progs.contains(Vector(0,2,1)))
-    assert(progs.contains(Vector(1,0,2)))
-    assert(progs.contains(Vector(1,2,0)))
-    assert(progs.contains(Vector(2,0,1)))
-    assert(progs.contains(Vector(2,1,0)))
-  }
-
-  test("ProgramacionRiegoOptimo encuentra la mejor programación") {
-    val r = new Riego()
-
-    val f = Vector(
-      (10,3,1),
-      (8,1,1),
-      (4,2,1)
-    )
-
-    val d = Vector(
-      Vector(0, 2, 4),
-      Vector(2, 0, 6),
-      Vector(4, 6, 0)
-    )
-
-    val (optPi, costo) = r.ProgramacionRiegoOptimo(f, d)
-
-    assert(optPi.toSet == Set(0,1,2))
-
-    val todas = r.generarProgramacionesRiego(f)
-    val minCosto = todas.map(pi => r.costoRiegoFinca(f, pi) + r.costoMovilidad(f, pi, d)).min
-
-    assert(costo == minCosto)
-  }
-
-  test("costoMovilidad con matriz de distancias asimétrica") {
-    val r = new Riego()
-
+  test("costoRiegoFinca — ejemplo básico") {
     val f = Vector((10,3,1),(8,1,1),(4,2,1))
     val pi = Vector(1,0,2)
-
-    val d = Vector(
-      Vector(0, 3, 10),
-      Vector(1, 0, 5),
-      Vector(2, 7, 0)
-    )
-    assert(r.costoMovilidad(f, pi, d) == 11)
+    assert(r.costoRiegoFinca(f,pi) == 15)
   }
 
-  test("generarProgramacionesRiego con 4 tablones produce 24 permutaciones") {
-    val r = new Riego()
-
-    val f = Vector(
-      (10,3,1),(8,1,2),(4,2,3),(6,1,4)
-    )
-
-    val progs = r.generarProgramacionesRiego(f)
-
-    assert(progs.length == 24)
-    assert(progs.contains(Vector(0,1,2,3)))
-    assert(progs.contains(Vector(3,2,1,0)))
-  }
-
-  test("costoRiegoFinca con prioridad alta (multas grandes)") {
-    val r = new Riego()
-
-    val f = Vector(
-      (5,3,10),
-      (7,2,1)
-    )
-
+  test("costoRiegoFinca — atraso grande con multas") {
+    val f = Vector((5,3,10),(7,2,1))
     val pi = Vector(1,0)
-
-    val expected = 5
-
-    assert(r.costoRiegoFinca(f, pi) == expected)
+    assert(r.costoRiegoFinca(f,pi) == 5)
   }
-  //Test costoRiegoFincaPar
-  test("costoRiegoFincaPar — finca simple sin multa") {
+
+  test("costoRiegoFinca — sin multas") {
+    val f = Vector((5,3,1),(4,2,1),(3,1,1))
+    val pi = Vector(0,1,2)
+    assert(r.costoRiegoFinca(f,pi) >= 0)
+  }
+
+  test("costoRiegoFinca — orden invertido") {
+    val f = Vector((10,3,1),(8,2,1),(6,2,1))
+    val pi = Vector(2,1,0)
+    assert(r.costoRiegoFinca(f,pi) >= 0)
+  }
+
+  test("costoRiegoFinca — finca de 1 tablon") {
+    val f = Vector((10,3,1))
+    assert(r.costoRiegoFinca(f,Vector(0)) >= 0)
+  }
+
+
+  test("costoMovilidad — ejemplo simple") {
+    val f = Vector((1,1,1),(1,1,1),(1,1,1))
+    val pi = Vector(2,0,1)
+    val d = Vector(
+      Vector(0,5,3),
+      Vector(5,0,4),
+      Vector(3,4,0)
+    )
+    assert(r.costoMovilidad(f,pi,d) == 7)
+  }
+
+  test("costoMovilidad — matriz asimétrica") {
+    val d = Vector(Vector(0,3,10),Vector(1,0,5),Vector(2,7,0))
+    val f = Vector.fill(3)((1,1,1))
+    assert(r.costoMovilidad(f,Vector(1,0,2),d) == 11)
+  }
+
+  test("costoMovilidad — 1 tablon") {
+    val f = Vector((10,3,1))
+    val d = Vector(Vector(0))
+    assert(r.costoMovilidad(f,Vector(0),d) == 0)
+  }
+
+  test("costoMovilidad — distancias lineales") {
+    val f = Vector.fill(4)((1,1,1))
+    val d = Vector.tabulate(4,4)((i,j)=>math.abs(i-j))
+    val pi = Vector(3,2,1,0)
+    assert(r.costoMovilidad(f,pi,d) == 3)
+  }
+
+  test("costoMovilidad — caso grande") {
+    val f = Vector.fill(5)((1,1,1))
+    val d = Vector.tabulate(5,5)((i,j)=>math.abs(i-j))
+    val pi = Vector(0,2,4,3,1)
+    assert(r.costoMovilidad(f,pi,d) >= 0)
+  }
+
+  test("generarProgramacionesRiego — 3 tablones (6 permutaciones)") {
+    val f = Vector((1,1,1),(1,1,1),(1,1,1))
+    assert(r.generarProgramacionesRiego(f).length == 6)
+  }
+
+  test("generarProgramacionesRiego — contiene permutación ordenada") {
+    val f = Vector((1,1,1),(1,1,1),(1,1,1))
+    assert(r.generarProgramacionesRiego(f).contains(Vector(0,1,2)))
+  }
+
+  test("generarProgramacionesRiego — contiene permutación invertida") {
+    val f = Vector((1,1,1),(1,1,1),(1,1,1))
+    assert(r.generarProgramacionesRiego(f).contains(Vector(2,1,0)))
+  }
+
+  test("generarProgramacionesRiego — 4 tablones (24 permutaciones)") {
+    val f = Vector((1,1,1),(1,1,1),(1,1,1),(1,1,1))
+    assert(r.generarProgramacionesRiego(f).length == 24)
+  }
+
+  test("generarProgramacionesRiego — todas distintas") {
+    val f = Vector((1,1,1),(1,1,1),(1,1,1))
+    val progs = r.generarProgramacionesRiego(f)
+    assert(progs.distinct.length == progs.length)
+  }
+
+  test("ProgramacionRiegoOptimo — encuentra óptimo básico") {
+    val f = Vector((10,3,1),(8,1,1),(4,2,1))
+    val d = Vector(Vector(0,2,4),Vector(2,0,6),Vector(4,6,0))
+    val (_,c) = r.ProgramacionRiegoOptimo(f,d)
+    val min = r.generarProgramacionesRiego(f).map(pi => r.costoRiegoFinca(f,pi)+r.costoMovilidad(f,pi,d)).min
+    assert(c == min)
+  }
+
+  test("ProgramacionRiegoOptimo — distancias asimétricas") {
+    val f = Vector((10,3,1),(8,1,1),(4,2,1))
+    val d = Vector(Vector(0,3,10),Vector(1,0,5),Vector(2,7,0))
+    val (_,c) = r.ProgramacionRiegoOptimo(f,d)
+    val min = r.generarProgramacionesRiego(f).map(pi => r.costoRiegoFinca(f,pi)+r.costoMovilidad(f,pi,d)).min
+    assert(c == min)
+  }
+
+  test("ProgramacionRiegoOptimo — finca 1 tablon") {
+    val f = Vector((10,3,1))
+    val d = Vector(Vector(0))
+    val (pi,c) = r.ProgramacionRiegoOptimo(f,d)
+    assert(pi == Vector(0) && c >= 0)
+  }
+
+  test("ProgramacionRiegoOptimo — caso grande 4 tablones") {
+    val f = Vector((5,3,1),(8,2,1),(6,2,1),(4,3,2))
+    val d = Vector(Vector(0,1,4,3),Vector(1,0,2,5),Vector(4,2,0,6),Vector(3,5,6,0))
+    val (_,c) = r.ProgramacionRiegoOptimo(f,d)
+    val min = r.generarProgramacionesRiego(f).map(pi => r.costoRiegoFinca(f,pi)+r.costoMovilidad(f,pi,d)).min
+    assert(c == min)
+  }
+
+  test("ProgramacionRiegoOptimo — óptimo produce permutación válida") {
+    val f = Vector((5,2,1),(7,1,1),(4,2,1))
+    val d = Vector.fill(3,3)(1)
+    val (pi,_) = r.ProgramacionRiegoOptimo(f,d)
+    assert(pi.toSet == Set(0,1,2))
+  }
+
+  test("costoRiegoFincaPar — coincide con secuencial (1)") {
     val f = Vector((10,3,1),(8,1,1),(4,2,1))
     val pi = Vector(1,0,2)
     assert(r.costoRiegoFincaPar(f,pi) == r.costoRiegoFinca(f,pi))
   }
 
-  test("costoRiegoFincaPar — con atraso y multa calculada") {
+  test("costoRiegoFincaPar — coincide con secuencial (2)") {
     val f = Vector((3,1,2),(7,2,1),(6,3,2))
     val pi = Vector(2,0,1)
     assert(r.costoRiegoFincaPar(f,pi) == r.costoRiegoFinca(f,pi))
   }
 
-  test("costoRiegoFincaPar — prioridad alta penaliza fuerte si se atrasa") {
+  test("costoRiegoFincaPar — coincide con secuencial (3)") {
     val f = Vector((5,3,8),(4,1,2),(6,3,10))
     val pi = Vector(2,1,0)
     assert(r.costoRiegoFincaPar(f,pi) == r.costoRiegoFinca(f,pi))
   }
 
-  test("costoRiegoFincaPar — riego justo en t = tsup → costo 0 esperado") {
-    val f = Vector((5,3,3),(8,2,1),(6,2,1))
-    val pi = Vector(1,0,2)
+  test("costoRiegoFincaPar — coincide con secuencial (4)") {
+    val f = Vector((5,3,3),(8,2,1),(6,2,1),(4,3,2))
+    val pi = Vector(3,0,1,2)
     assert(r.costoRiegoFincaPar(f,pi) == r.costoRiegoFinca(f,pi))
   }
 
-  test("costoRiegoFincaPar — caso grande con 6 tablones (no trivial)") {
-    val f = Vector((10,3,3),(7,2,1),(6,3,2),(9,1,3),(4,2,1),(8,2,3))
+  test("costoRiegoFincaPar — coincide con secuencial (5)") {
+    val f = Vector((10,3,1),(7,2,1),(6,3,2),(9,1,3),(4,2,1),(8,2,3))
     val pi = Vector(3,1,5,0,2,4)
     assert(r.costoRiegoFincaPar(f,pi) == r.costoRiegoFinca(f,pi))
   }
-  //Test casoMovilidadPar
 
-  test("costoMovilidadPar — 3 tablones simple") {
+
+  // costoMovilidadPar
+  test("costoMovilidadPar — coincide (1)") {
     val d = Vector(Vector(0,5,3),Vector(5,0,4),Vector(3,4,0))
-    val f = Vector((1,1,1),(1,1,1),(1,1,1))
+    val f = Vector.fill(3)((1,1,1))
     val pi = Vector(2,0,1)
     assert(r.costoMovilidadPar(f,pi,d) == r.costoMovilidad(f,pi,d))
   }
 
-  test("costoMovilidadPar — distancias asimétricas") {
+  test("costoMovilidadPar — coincide (2)") {
     val d = Vector(Vector(0,3,10),Vector(1,0,5),Vector(2,7,0))
-    val f = Vector((1,1,1),(1,1,1),(1,1,1))
+    val f = Vector.fill(3)((1,1,1))
     val pi = Vector(1,0,2)
     assert(r.costoMovilidadPar(f,pi,d) == r.costoMovilidad(f,pi,d))
   }
 
-  test("costoMovilidadPar — 5 tablones con movilidad compleja") {
+  test("costoMovilidadPar — coincide (3)") {
+    val d = Vector.tabulate(6,6)((i,j)=>math.abs(i-j))
+    val f = Vector.fill(6)((1,1,1))
+    val pi = Vector(5,4,3,2,1,0)
+    assert(r.costoMovilidadPar(f,pi,d) == r.costoMovilidad(f,pi,d))
+  }
+
+  test("costoMovilidadPar — coincide (4)") {
     val d = Vector(
-      Vector(0,2,2,4,4), Vector(2,0,4,2,6), Vector(2,4,0,2,2),
-      Vector(4,2,2,0,4), Vector(4,6,2,4,0)
+      Vector(0,2,2,4,4), Vector(2,0,4,2,6),
+      Vector(2,4,0,2,2), Vector(4,2,2,0,4),
+      Vector(4,6,2,4,0)
     )
     val f = Vector.fill(5)((1,1,1))
     val pi = Vector(0,1,3,4,2)
     assert(r.costoMovilidadPar(f,pi,d) == r.costoMovilidad(f,pi,d))
   }
 
-  test("costoMovilidadPar — permutación invertida con 6 tablones") {
-    val f = Vector.fill(6)((1,1,1))
-    val d = Vector.tabulate(6,6)((i,j)=>if(i==j)0 else math.abs(i-j))
-    val pi = Vector(5,4,3,2,1,0)
-    assert(r.costoMovilidadPar(f,pi,d) == r.costoMovilidad(f,pi,d))
-  }
-
-  test("costoMovilidadPar — caso borde: solo un tablón (movilidad = 0)") {
+  test("costoMovilidadPar — coincide (5)") {
     val f = Vector((10,3,1))
     val pi = Vector(0)
     val d = Vector(Vector(0))
     assert(r.costoMovilidadPar(f,pi,d) == 0)
   }
-  test("generarProgramacionesRiegoPar — igualdad con versión secuencial (3 tablones)") {
-    val r = new Riego()
 
-    val f = Vector(
-      (10,3,1),
-      (8,1,2),
-      (4,2,3)
-    )
 
-    val seq = r.generarProgramacionesRiego(f)
-    val par = r.generarProgramacionesRiegoPar(f)
-
-    assert(par.toSet == seq.toSet)
-    assert(par.length == seq.length)
-    assert(par.length == 6) // 3! = 6
+  // generarProgramacionesRiegoPar (5 tests)
+  test("generarProgramacionesRiegoPar — coincide con secuencial (1)") {
+    val f = Vector((10,3,1),(8,1,2),(4,2,3))
+    assert(r.generarProgramacionesRiegoPar(f).toSet == r.generarProgramacionesRiego(f).toSet)
   }
-  test("generarProgramacionesRiegoPar — igualdad con versión secuencial (4 tablones)") {
-    val r = new Riego()
 
-    val f = Vector(
-      (10,3,1), (8,1,2), (4,2,3), (6,1,4)
-    )
-
-    val seq = r.generarProgramacionesRiego(f)
+  test("generarProgramacionesRiegoPar — coincide con secuencial (2)") {
+    val f = Vector((5,2,1),(7,1,2),(3,1,3))
     val par = r.generarProgramacionesRiegoPar(f)
-
-    assert(par.toSet == seq.toSet)
-    assert(par.length == seq.length)
-    assert(par.length == 24) // 4! = 24
-  }
-  test("generarProgramacionesRiegoPar — incluye permutaciones específicas") {
-    val r = new Riego()
-
-    val f = Vector(
-      (5,2,1), (7,1,2), (3,1,3)
-    )
-
-    val par = r.generarProgramacionesRiegoPar(f)
-
     assert(par.contains(Vector(0,1,2)))
     assert(par.contains(Vector(2,1,0)))
   }
-  test("ProgramacionRiegoOptimoPar — mismo costo que la versión secuencial") {
-    val r = new Riego()
 
-    val f = Vector(
-      (10,3,1),
-      (8,1,1),
-      (4,2,1)
-    )
-
-    val d = Vector(
-      Vector(0, 2, 4),
-      Vector(2, 0, 6),
-      Vector(4, 6, 0)
-    )
-
-    val (piSeq, costoSeq) = r.ProgramacionRiegoOptimo(f, d)
-    val (piPar, costoPar) = r.ProgramacionRiegoOptimoPar(f, d)
-
-    assert(costoSeq == costoPar)
-    assert(piPar.toSet == piSeq.toSet)
+  test("generarProgramacionesRiegoPar — coincide en tamaño (3)") {
+    val f = Vector((1,1,1),(1,1,1),(1,1,1),(1,1,1))
+    assert(r.generarProgramacionesRiegoPar(f).length == 24)
   }
-  test("ProgramacionRiegoOptimoPar — encuentra un óptimo válido") {
-    val r = new Riego()
 
-    val f = Vector(
-      (5,3,3),
-      (8,2,1),
-      (6,2,1),
-      (4,3,2)
-    )
+  test("generarProgramacionesRiegoPar — coincide con secuencial (4)") {
+    val f = Vector((10,3,1),(8,1,2),(4,2,3),(6,1,4))
+    assert(r.generarProgramacionesRiegoPar(f).toSet == r.generarProgramacionesRiego(f).toSet)
+  }
 
+  test("generarProgramacionesRiegoPar — todas distintas (5)") {
+    val f = Vector((1,1,1),(1,1,1),(1,1,1))
+    val par = r.generarProgramacionesRiegoPar(f)
+    assert(par.distinct.length == par.length)
+  }
+
+
+  // ProgramacionRiegoOptimoPar (5 tests)
+  test("ProgramacionRiegoOptimoPar — coincide con secuencial (1)") {
+    val f = Vector((10,3,1),(8,1,1),(4,2,1))
+    val d = Vector(Vector(0,2,4),Vector(2,0,6),Vector(4,6,0))
+    val (_,c1) = r.ProgramacionRiegoOptimo(f,d)
+    val (_,c2) = r.ProgramacionRiegoOptimoPar(f,d)
+    assert(c1 == c2)
+  }
+
+  test("ProgramacionRiegoOptimoPar — coincide con secuencial (2)") {
+    val f = Vector((5,3,3),(8,2,1),(6,2,1),(4,3,2))
     val d = Vector(
-      Vector(0,1,4,3),
-      Vector(1,0,2,5),
-      Vector(4,2,0,6),
-      Vector(3,5,6,0)
+      Vector(0,1,4,3),Vector(1,0,2,5),
+      Vector(4,2,0,6),Vector(3,5,6,0)
     )
+    val (_,c1) = r.ProgramacionRiegoOptimo(f,d)
+    val (_,c2) = r.ProgramacionRiegoOptimoPar(f,d)
+    assert(c1 == c2)
+  }
 
+  test("ProgramacionRiegoOptimoPar — asimétrico (3)") {
+    val f = Vector((10,3,1),(8,1,1),(4,2,1))
+    val d = Vector(Vector(0,3,10),Vector(1,0,5),Vector(2,7,0))
+    val (_,c1) = r.ProgramacionRiegoOptimo(f,d)
+    val (_,c2) = r.ProgramacionRiegoOptimoPar(f,d)
+    assert(c1 == c2)
+  }
+
+  test("ProgramacionRiegoOptimoPar — permutación válida (4)") {
+    val f = Vector((5,2,1),(7,1,1),(4,2,1))
+    val d = Vector.fill(3,3)(1)
+    val (pi,_) = r.ProgramacionRiegoOptimoPar(f,d)
+    assert(pi.toSet == Set(0,1,2))
+  }
+
+  test("ProgramacionRiegoOptimoPar — caso grande (5)") {
+    val f = Vector((5,3,3),(8,2,1),(6,2,1),(4,3,2))
+    val d = Vector(
+      Vector(0,1,4,3),Vector(1,0,2,5),
+      Vector(4,2,0,6),Vector(3,5,6,0)
+    )
     val todas = r.generarProgramacionesRiego(f)
-
-    val minCosto = todas.map(pi =>
-      r.costoRiegoFinca(f, pi) + r.costoMovilidad(f, pi, d)
-    ).min
-
-    val (_, costoPar) = r.ProgramacionRiegoOptimoPar(f, d)
-
-    assert(costoPar == minCosto)
-  }
-  test("ProgramacionRiegoOptimoPar — funciona con distancias asimétricas") {
-    val r = new Riego()
-
-    val f = Vector(
-      (10,3,1),
-      (8,1,1),
-      (4,2,1)
-    )
-
-    val d = Vector(
-      Vector(0, 3, 10),
-      Vector(1, 0, 5),
-      Vector(2, 7, 0)
-    )
-
-    val (piSeq, costoSeq) = r.ProgramacionRiegoOptimo(f, d)
-    val (piPar, costoPar) = r.ProgramacionRiegoOptimoPar(f, d)
-
-    assert(costoSeq == costoPar)
-    assert(piPar.toSet == Set(0,1,2))
+    val min = todas.map(pi => r.costoRiegoFinca(f,pi)+r.costoMovilidad(f,pi,d)).min
+    val (_,cPar) = r.ProgramacionRiegoOptimoPar(f,d)
+    assert(cPar == min)
   }
 
 }
