@@ -1,9 +1,6 @@
-
 # Informe costoMovilidadPar
 
-
 ### 1. DEFINICIÓN DE LA FUNCIÓN
-
 ```scala
 def costoMovilidadPar(f: Finca, pi: ProgRiego, d: Distancia): Int = {
   import scala.collection.parallel.CollectionConverters._
@@ -18,30 +15,29 @@ def costoMovilidadPar(f: Finca, pi: ProgRiego, d: Distancia): Int = {
 
 ### 2. DEFINICIÓN MATEMÁTICA
 
-Sea $(Pi)$ la permutación del orden de riego ( `perm` en el código ).
+Sea $\Pi$ la permutación del orden de riego (`perm` en el código).
 
 El costo de movilidad se define formalmente como:
 
-$
-CM^{\Pi}*F = \sum*{j=0}^{n-2} D_F[\pi_j, \pi_{j+1}]
-$
+$$
+CM^{\Pi}_F = \sum_{j=0}^{n-2} D_F[\pi_j, \pi_{j+1}]
+$$
 
-donde $(\pi_j = \Pi(j))$ es el índice del tablón que se riega en el turno $(j)$.
+donde $\pi_j = \Pi(j)$ es el índice del tablón que se riega en el turno $j$.
 
-**La función `costoMovilidadPar` calcula exactamente $(CM^{\Pi}_F)$** según esta definición: itera los pares consecutivos $((\pi_j,\pi_{j+1}))$ y suma las entradas de la matriz `d`.
+**La función `costoMovilidadPar` calcula exactamente $CM^{\Pi}_F$** según esta definición: itera los pares consecutivos $(\pi_j,\pi_{j+1})$ y suma las entradas de la matriz `d`.
 
 ---
 
 ### 3. ESPECIFICACIÓN FORMAL
 
-Para toda finca `f`, toda programación `pi` válida (una programación es válida si representa un turno para cada tablón) y toda matriz `d` de dimensión (n\times n):
+Para toda finca `f`, toda programación `pi` válida (una programación es válida si representa un turno para cada tablón) y toda matriz `d` de dimensión $n\times n$:
 
 1. `costoMovilidadPar(f, pi, d) == costoMovilidad(f, pi, d)` (igual que la versión secuencial)
 2. `costoMovilidadPar(f, pi, d) == CM^{\Pi}_F` (definición)
-3. El resultado es determinista e independiente del orden de evaluación de los términos (la suma es conmutativa/associativa sobre enteros)
+3. El resultado es determinista e independiente del orden de evaluación de los términos (la suma es conmutativa/asociativa sobre enteros)
 
 **Precondiciones recomendadas (para robustez):**
-
 ```scala
 require(pi.length == f.length, "pi must have length n")
 require(pi.sorted == (0 until f.length).toVector, "pi must be a permutation of 0..n-1")
@@ -50,22 +46,23 @@ require(d.length == f.length && d.forall(_.length == f.length), "d must be n x n
 
 ---
 
-### 4. CORRECTITUD POR INDUCCIÓN ESTRUCTURAL (sobre (n) = número de tablones)
+### 4. CORRECTITUD POR INDUCCIÓN ESTRUCTURAL (sobre $n$ = número de tablones)
 
-**Caso base $(n \le 1)$**
-No hay movimientos (no existen pares consecutivos), la suma vacía es $(0)$. La función devuelve 0 por la condición `if (n <= 1) 0`. ⇒ correcto.
+**Caso base $n \le 1$**  
+No hay movimientos (no existen pares consecutivos), la suma vacía es $0$. La función devuelve 0 por la condición `if (n <= 1) 0`. ⇒ correcto.
 
-**Caso base $(n = 2)$**
-Hay exactamente un movimiento $(j=0)$. El código calcula `d(perm(0))(perm(1))` y lo devuelve. Coincide con la fórmula.
+**Caso base $n = 2$**  
+Hay exactamente un movimiento $j=0$. El código calcula `d(perm(0))(perm(1))` y lo devuelve. Coincide con la fórmula.
 
-**Paso inductivo**
-Supongamos la propiedad cierta para todas fincas de tamaño $(\le n)$. Consideremos tamaño $(n+1)$:
+**Paso inductivo**  
+Supongamos la propiedad cierta para todas fincas de tamaño $\le n$. Consideremos tamaño $n+1$:
 
 * `perm` es la permutación correcta derivada de `pi`.
-* El conjunto de movimientos a sumar es $({d(perm(j))(perm(j+1)) \mid j=0..n-1})$.
-* En la implementación se itera exactamente sobre esos (n) índices y se evalúa cada término con la misma expresión que en la versión secuencial.
-* La suma en paralelo produce los mismos valores y la reducción (`.sum`) es conmutativa/associativa, por lo que el resultado coincide con la suma secuencial.
-  Por inducción, la función es correcta para todo $(n \ge 0)$.
+* El conjunto de movimientos a sumar es $\{d(perm(j))(perm(j+1)) \mid j=0..n-1\}$.
+* En la implementación se itera exactamente sobre esos $n$ índices y se evalúa cada término con la misma expresión que en la versión secuencial.
+* La suma en paralelo produce los mismos valores y la reducción (`.sum`) es conmutativa/asociativa, por lo que el resultado coincide con la suma secuencial.
+
+Por inducción, la función es correcta para todo $n \ge 0$.
 
 **Conclusión:** la implementación es correcta para todas las entradas que cumplen las precondiciones.
 
@@ -76,12 +73,11 @@ Supongamos la propiedad cierta para todas fincas de tamaño $(\le n)$. Considere
 **Tipo de paralelismo:** Paralelismo de datos (data parallelism).
 
 **Código paralelo central:**
-
 ```scala
 (0 until n-1).par.map(j => d(perm(j))(perm(j+1))).sum
 ```
 
-* Cada término $(d(\pi_j,\pi_{j+1}))$ es independiente → perfecto para paralelizar.
+* Cada término $d(\pi_j,\pi_{j+1})$ es independiente → perfecto para paralelizar.
 * No hay estados compartidos ni efectos colaterales: no locks/atomics necesarios.
 * `.par` delega la partición y ejecución en la implementación paralela de Scala.
 * `.sum` en una colección paralela realiza una reducción asociativa y segura.
@@ -90,47 +86,51 @@ Supongamos la propiedad cierta para todas fincas de tamaño $(\le n)$. Considere
 
 ---
 
-### Speedup medido 
+### 6. SPEEDUP MEDIDO
 
-> BenchManual ejecutado con `tamaños = 6,7,8`, `reps = 5`. Máquina detectó **4 cores lógicos**. CSV escrito en:
-> `docs/benchmarks.csv`
+**Configuración del Benchmark:**
+- **Cores:** 16 (lógicos)
+- **Sistema:** Windows 11, Java HotSpot(TM) 64-Bit Server VM 17.0.16+12-LTS-247
+- **Hostname:** Ospina
+- **Arquitectura:** amd64
 
-| Tamaño (n) | Secuencial Total (ms) | Paralelo Total (ms) | Speedup | Aceleración (%) |
-| ---------: | --------------------: | ------------------: | ------: | --------------: |
-|          6 |        11.869 ± 2.150 |      27.355 ± 7.875 |   0.434 |         -56.61% |
-|          7 |       62.480 ± 17.282 |      42.201 ± 4.956 |   1.481 |          48.05% |
-|          8 |      475.813 ± 18.327 |    314.997 ± 82.004 |   1.511 |          51.05% |
+**Resultados de `costoMovilidadPar`:**
+
+| Tamaño (n) | Secuencial (ms) | Paralelo (ms) | Speedup | Aceleración (%) |
+|-----------:|----------------:|--------------:|--------:|----------------:|
+|          6 |         0.006301|       0.039701|    0.16 |         -530.1% |
+|          7 |         0.005001|       0.029200|    0.17 |         -483.9% |
+|          8 |         0.006199|       0.031499|    0.20 |         -408.1% |
 
 **Observaciones:**
 
-* Para $(n=6)$ la versión paralela **es más lenta** $(speedup < 1)$. $Overhead > beneficio$.
-* A partir de $(n=7)$ ya hay beneficio $(speedup ≈ 1.48)$ y para $(n=8)$ se mantiene $(≈1.51)$.
-* Los tiempos `gen seq/gen par` y `eval seq/eval par` impresos por tu bench muestran que en `n=6` la generación paralela incluso empeora, y la evaluación no compensa.
+* **La versión paralela es consistentemente más lenta** en todos los tamaños de entrada medidos.
+* El **overhead de paralelización** (creación de threads, sincronización, gestión de colecciones paralelas) **supera ampliamente** el beneficio del cómputo paralelo.
+* Los tiempos de ejecución son extremadamente pequeños (microsegundos), lo que indica que:
+    - El cómputo por elemento es trivial (simple acceso a matriz y suma)
+    - El overhead fijo de paralelización domina completamente
+    - Para estos tamaños de problema, la paralelización no es apropiada
 
 ---
 
-### 5.1 Ley de Amdahl — estimación de (p) (fracción paralelizable)
+### 6.1 Ley de Amdahl — análisis de fracción paralelizable
 
-Usamos la forma invertida para estimar (p) (dado speedup observado $(S)$ y $(N_{cores}=4))$:
-$
-[
-S = \frac{1}{(1-p) + \frac{p}{N_{cores}}}
-\quad\Longrightarrow\quad
-p = \frac{1 - \frac{1}{S}}{1 - \frac{1}{N_{cores}}}
-]
-$
-Calculando con tus resultados:
+Dado que todos los speedups son **menores que 1**, esto indica que el overhead de paralelización ($O$) domina sobre cualquier beneficio potencial:
 
-* $(n=6) → (S=0.434)$ → la fórmula da $(p<0)$ (no física): indicio de que el overhead domina; tomamos $p \approx 0%)$.
-* $(n=7) → (S=1.481)$ → $p \approx 43.3%$.
-* $(n=8) → (S=1.511)$ → $p \approx 45.0%$.
+$$
+T_{par} = T_{seq} \cdot (1-p) + \frac{T_{seq} \cdot p}{N} + O
+$$
 
-**Interpretación:** para $(n\ge 7)$ la porción paralelizable crece $≈ 43–45%$, suficiente para superar el overhead en una máquina de 4 cores.
+En este caso: $O >> \frac{T_{seq} \cdot p}{N}$ para todos los valores de $n$ medidos.
+
+**Interpretación:**
+- La fracción paralelizable teórica podría ser alta (~100% del cómputo es paralelizable)
+- Sin embargo, el tiempo de cómputo es tan pequeño que el overhead fijo de paralelización (~0.03ms) excede el tiempo de cómputo secuencial (~0.006ms) por un factor de 5x
+- **Conclusión:** Esta función NO debe paralelizarse para estos tamaños de problema. Sería necesario $n >> 8$ para ver beneficios.
 
 ---
 
-### 6. PROCESO – DIAGRAMA MERMAID
-
+### 7. PROCESO – DIAGRAMA MERMAID
 ```mermaid
 flowchart TD
     A["costoMovilidadPar(f, pi, d)"] 
@@ -152,10 +152,9 @@ flowchart TD
 
 ---
 
-### 7. CASOS DE PRUEBA  — tests concretos con valor esperado
+### 8. CASOS DE PRUEBA — tests concretos con valor esperado
 
 A continuación 5 tests concretos. Cada uno compara la versión paralela con el valor esperado o con la versión secuencial.
-
 ```scala
 // Test 1 — caso borde: 1 tablón → movilidad = 0
 val f1 = Vector((10,3,1))
@@ -211,7 +210,9 @@ assert(r.costoMovilidadPar(f5, pi5, d5) == expected5)
 
 ---
 
-### 8. CONCLUSIÓN FINAL
+### 9. CONCLUSIÓN FINAL
 
-* `costoMovilidadPar` implementa exactamente la definición matemática del coste de movilidad $(CM^{\Pi}_F)$. La demostración por inducción y la ausencia de efectos colaterales respaldan su corrección.
-* La estrategia de paralelización es la adecuada (paralelismo de datos con `.par`) y respeta la restricción del enunciado.
+* `costoMovilidadPar` implementa exactamente la definición matemática del coste de movilidad $CM^{\Pi}_F$. La demostración por inducción y la ausencia de efectos colaterales respaldan su corrección.
+* La estrategia de paralelización es conceptualmente adecuada (paralelismo de datos con `.par`).
+* **Sin embargo, para los tamaños de problema medidos (n=6,7,8), la paralelización resulta contraproducente** debido al overhead que supera por 5x el tiempo de cómputo.
+* **Recomendación:** Para esta función específica con estos tamaños de entrada, la versión secuencial es preferible. La paralelización solo sería beneficiosa para valores de $n$ significativamente mayores (estimado: $n > 20$).
