@@ -90,22 +90,20 @@ Supongamos la propiedad cierta para todas fincas de tamaño $(\le n)$. Considere
 
 ---
 
-### Speedup medido 
-
-> BenchManual ejecutado con `tamaños = 6,7,8`, `reps = 5`. Máquina detectó **4 cores lógicos**. CSV escrito en:
-> `docs/benchmarks.csv`
+### Speedup medid
+## Tabla de Benchmarks Corregida
 
 | Tamaño (n) | Secuencial Total (ms) | Paralelo Total (ms) | Speedup | Aceleración (%) |
-| ---------: | --------------------: | ------------------: | ------: | --------------: |
-|          6 |        11.869 ± 2.150 |      27.355 ± 7.875 |   0.434 |         -56.61% |
-|          7 |       62.480 ± 17.282 |      42.201 ± 4.956 |   1.481 |          48.05% |
-|          8 |      475.813 ± 18.327 |    314.997 ± 82.004 |   1.511 |          51.05% |
+| ----------:| ----------------------:| ---------------------:| -------:| ----------------:|
+| 6 | 11.869 ± 2.150 | 27.355 ± 7.875 | **0.43** | **-56.6%** |
+| 7 | 62.480 ± 17.282 | 42.201 ± 4.956 | **1.48** | **+48.1%** |
+| 8 | 475.813 ± 18.327 | 314.997 ± 82.004 | **1.51** | **+51.0%** |
 
-**Observaciones:**
+### Observaciones
 
-* Para $(n=6)$ la versión paralela **es más lenta** $(speedup < 1)$. $Overhead > beneficio$.
-* A partir de $(n=7)$ ya hay beneficio $(speedup ≈ 1.48)$ y para $(n=8)$ se mantiene $(≈1.51)$.
-* Los tiempos `gen seq/gen par` y `eval seq/eval par` impresos por tu bench muestran que en `n=6` la generación paralela incluso empeora, y la evaluación no compensa.
+- Para `n = 6`, la versión paralela es más lenta debido al overhead de creación y sincronización de hilos.
+- Desde `n = 7` se observa un beneficio claro del paralelismo (speedup > 1).
+- La aceleración para `n = 7` y `n = 8` se mantiene alrededor del **50%**, consistente con una máquina de **4 cores lógicos**.
 
 ---
 

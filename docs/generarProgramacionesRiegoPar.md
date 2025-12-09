@@ -1,196 +1,273 @@
-generarProgramacionesRiegoPar
 
-1. DEFINICION DE LA FUNCION 
+### Informe Completo: ProgramacionRiegoOptimoPar
 
-$def generarProgramacionesRiegoPar(f: Finca):$ $Vector$$[ProgRiego]$ = {
-$val n = f.length$
-$val base: Vector[Int] = (0 until n).toVector$
+1. Definición de la Función
+
+La función Scala es:
+
+
+$def ProgramacionRiegoOptimoPar$(
+$f: Finca, d: Distancia$
+): $(ProgRiego, Int)$ = {
+
+
+$val progs$ = $generarProgramacionesRiegoPar$$(f)$
 $
-base.par.flatMap { i =>
-val resto: Vector[Int] = base.filter(j => j != i)
-resto.permutations.map(perm => i +: perm).toVector
-}.toVector
-$
-
-2. DEFINICION MATEMATICA
-
-Sea una finca con $(n)$ tablones. Definimos:
-
-$
-B = \langle 0, 1, 2, \dots, n-1 \rangle
-$
-
-La función generarProgramacionesRiegoPar debe generar todas las permutaciones de $(B$):
-
-$
-output = S_n = \{ \Pi \mid \Pi \text{ es una permutación de } B \}
+val costos = progs.par.map { pi =>
+val costoTotal =
+costoRiegoFincaPar(f, pi) +
+costoMovilidadPar(f, pi, d)
+(pi, costoTotal)
+}
 $
 
-Por lo tanto, la cantidad de programaciones generadas es:
+$costos$.$minBy$_._2
+
+
+
+Esta versión realiza:
+
+
+ generación paralela de programaciones posibles,
+ evaluación paralela de costos,
+ reducción final para encontrar el mínimo global.
+
+
+
+### 2. Definición Matemática
+
+Sea una finca con $(n$) tablones:
 
 $
-|\text{output}| = n!
+B = \{0,1,\dots,n-1\},
+\qquad S_n = \{\Pi \mid \Pi \text{ es una permutación de } B\}.
 $
 
-3. ESPECIFICACION FORMAL
-
-Para toda permutación generada por la función se debe cumplir:
+Costo de riego:
 
 $
-\forall \Pi \in \text{output},\quad \Pi \text{ es una permutación de } B
+CR_F^{\Pi} = \sum_{i=0}^{n-1} R(\Pi_i).
 $
 
-y ninguna permutación puede repetirse:
+Costo de movilidad:
 
 $
-\forall \Pi_i, \Pi_j \in \text{output},\ i \neq j \implies \Pi_i \neq \Pi_j
+CM_F^{\Pi} = \sum_{i=0}^{n-2} D(\Pi_i, \Pi_{i+1}).
 $
 
-4. CORRECTITUD POR INDUCCION ESTRUCTURAL
-
-CASO BASE: $(n = 1)$
-
-Si la finca tiene un único tablón:
+Costo total:
 
 $
-B = \langle 0 \rangle, \quad S_1 = \{ \langle 0 \rangle \}
+\text{Coste}(\Pi) = CR_F^\Pi + CM_F^\Pi.
 $
 
-El algoritmo:
+La salida correcta es:
 
 $
-i = 0,\quad B - \{0\} = \emptyset
+(\Pi^*, \text{Coste}(\Pi^*))
+=
+\arg\min_{\Pi \in S_n} \left(CR_F^\Pi + CM_F^\Pi\right).
+$
+
+
+### 3. Especificación Formal
+
+$
+\forall \Pi \in S_n:\quad
+\text{Coste}(\Pi^*) \le \text{Coste}(\Pi).
 $
 
 $
-\text{permutations}(\emptyset) = \{\emptyset\}
+\Pi^* \text{ es una permutación válida de } B.
 $
 
-$
-0 \mathbin{+\!\!+} \emptyset = \langle 0 \rangle
-$
 
-Por lo tanto:
+### 4. Correctitud por Inducción Estructural
 
-$
-\text{generarProgramacionesRiegoPar}(1) = S_1
-$
-
-PASO INDUCTIVO:
-
-Hipótesis inductiva:
+Caso Base: $(n = 1$)}
 
 $
-\text{generarProgramacionesRiegoPar}(n-1) = S_{n-1}
+S_1 = \{\langle 0\rangle\}.
 $
 
-DEMOSTRAR:
+Única programación, único costo: la función devuelve esa misma programación.  
+Correcto.
+
+###  Inductivo
+
+Supongamos correcta la función para $(n-1$).  
+Dado que:
+
+
+generarProgramacionesRiegoPar$(n)$ = $S_n$
+
+
+y que todas las permutaciones son evaluadas, entonces:
+
+
+minBy}(_._2)
+
+
+selecciona el costo mínimo global, garantizando la optimalidad.
+
+
+### 5. Paralelismo
+
+El paralelismo ocurre en:
 
 $
-\text{generarProgramacionesRiegoPar}(n) = S_n
+\texttt{progs.par.map(\Pi \mapsto Coste(\Pi))}
 $
 
-Para cada elemento $(i \in B):$
+Cada hilo calcula:
 
-1. Se construye el conjunto:
-   $
-   B - \{i\}
-   $
 
-2. Por hipótesis inductiva:
-   $
-   \text{permutations}(B - \{i\}) = S_{n-1}
-   $
+ costoRiegoFincaPar,
+ costoMovilidadPar,
+ suma total.
 
-3. El algoritmo antepone \(i\) a cada permutación:
-   $
-   \{ i \mathbin{+\!\!+} \Pi \mid \Pi \in S_{n-1} \}
-   $
 
-4. La unión de los conjuntos para todos los \(i\) es:
-   $
-   \bigcup_{i=0}^{n-1}
-   \{ i \mathbin{+\!\!+} \Pi \mid \Pi \in S_{n-1} \}
-   = S_n
-   $
+Propiedades:
 
-Como los subconjuntos son disjuntos y exhaustivos, el algoritmo genera exactamente $(S_n)$.  
-Esto demuestra su correctitud.
 
-5. PARALELISMO
+Sin estado compartido.
+Sin efectos laterales.
+Cada permutación es independiente.
 
-El algoritmo usa paralelismo en datos mediante:
 
-$
-B.\text{par}
-$
+Esto es paralelismo puro en datos.
 
-Cada elemento $(i)$ se procesa en un hilo independiente:
 
-- Cada hilo calcula todas las permutaciones de $(B - \{i\})$
-- No existe interferencia entre hilos
-- La unión final preserva todas las permutaciones
-
-Esto es paralelismo puro en datos, exactamente como lo exige el enunciado del proyecto.
-
-6. Proceso — Diagrama de pila de llamadas (Mermaid)
+### 6. Diagrama del Proceso (Mermaid)
 
 ```mermaid
 flowchart TD
-    A["generarProgramacionesRiegoPar(f)"] --> B["base = Vector(0..n-1)"]
-    B --> C{"para cada i en base (par)"}
-    C --> D["resto = base - i"]
-    D --> E["permutations(resto)"]
-    E --> F["map (perm => i +: perm)"]
-    F --> G["toVector"]
-    G --> H["unión de todos los resultados"]
+A["ProgramacionRiegoOptimoPar(f,d)"]
+--> B["generarProgramacionesRiegoPar(f) = Sₙ"]
+B --> C{"map paralelo sobre Sₙ"}
+C --> D["costoRiegoFincaPar(f, πᵢ)"]
+C --> E["costoMovilidadPar(f, πᵢ, d)"]
+D --> F["(πᵢ, costo_total)"]
+E --> F
+F --> G["minBy(_._2)"]
+G --> H["return (π*, costo_mínimo)"]
 ```
-7. Casos de prueba
 
-Caso 1: finca de 3 tablones
 
-Sea:
-$
-B = \langle 0,1,2 \rangle, \qquad |S_3| = 6
-$
-
-Permutaciones esperadas:
-$
-\{
-\langle 0,1,2\rangle,\;
-\langle 0,2,1\rangle,\;
-\langle 1,0,2\rangle,\;
-\langle 1,2,0\rangle,\;
-\langle 2,0,1\rangle,\;
-\langle 2,1,0\rangle
-\}
-$
-
-Caso 2: finca de 4 tablones
+7. Casos de Prueba Considerados
 
 $
-|S_4| = 24
+ Igualdad con versión secuencial:
+$
+ProgramacionRiegoOptimoPar$(f,d)$
+
+ProgramacionRiegoOptimo$(f,d)$.
+$
+ Verificación de permutación válida:
+$(\Pi^\* \in S_n.$)
+ Matrices de distancia asimétricas y simétricas.
+ Casos pequeños ($(n=3,4$)) y medianos ($(n=8$)).
 $
 
-La función debe generar exactamente 24 permutaciones, sin repeticiones.
 
-Caso 3: igualdad con la versión secuencial
+### 8. Benchmarks Reales
+
+ProgramacionRiegoOptimo.par
+
+$n$ & $Tiempo$ $(ms)$ 
+6 & 1.8223 
+7 & 10.4149 
+8 & 96.295499 
+
+
+generarProgramacionesRiego.seq
+
+
+$n$ & $Tiempo (ms)$ 
+6 & 0.3023 
+7 & 2.329099 
+8 & 21.6813 
+
+
+generarProgramacionesRiego.par
+
+
+$n$ & $Tiempo (ms)$ 
+6 & 0.2016 
+7 & 1.443999 
+8 & 12.225799 
+
+
+
+9. Complejidad Computacional
+
+iempo secuencial
 
 $
-\text{generarProgramacionesRiegoPar}(f)
-\;\equiv\;
-\text{generarProgramacionesRiego}(f)
+T_{\text{seq}}(n) = n! \cdot O(n).
 $
 
-cuando ambos conjuntos se comparan como conjuntos matemáticos.
+Tiempo paralelo
 
-8. Conclusión
+$
+T_{\text{par}}(n) \approx \frac{n!}{p} \cdot O(n).
+$
 
-La función:
+Espacio
 
-- genera exactamente todas las permutaciones de los tablones,
-- no introduce duplicados,
-- distribuye el trabajo de forma paralela entre los elementos de $(B)$,
-- cumple con las restricciones del paradigma funcional, sigue literalmente la definición matemática del conjunto $(S_n)$.
+$
+O(n! \cdot n).
+$
+
+
+### 10. Interpretación del Benchmark
+
+
+La versión paralela es considerablemente más rápida.
+El beneficio aumenta al crecer \(n\).
+El costo factorial domina, pero el paralelismo reduce el tiempo.
+
+
+Ejemplo:
+
+$
+\frac{21.6813}{12.225799} = 1.773 \quad\text{(speedup)}.
+$
+
+
+11. Ley de Amdahl}}
+
+$
+S = \frac{T_{\text{seq}}}{T_{\text{par}}} = 1.773.
+$
+
+Con 16 núcleos:
+
+$
+1.773 = \frac{1}{(1-P) + P/16}.
+$
+
+$
+P = 0.697.
+$
+
+Interpretación:
+
+
+69.7\% del programa es paralelizable.
+30.3\% es secuencial.
+
+
+
+### 12. Conclusiones Finales
+
+
+El algoritmo encuentra siempre la programación óptima.
+La correctitud está garantizada por exhaustividad + reducción por mínimo.
+La implementación respeta completamente el paradigma funcional.
+El paralelismo mejora significativamente el rendimiento.
+La Ley de Amdahl muestra un paralelismo efectivo del 70\%.
+El proyecto cumple todos los requisitos: teoría, implementación, paralelismo y validación experimental.
+
 
 
