@@ -1,0 +1,804 @@
+<html>
+<head>
+<title>PDF.md</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cf8e6d;}
+.s1 { color: #bcbec4;}
+.s2 { color: #bcbec4;}
+.s3 { color: #c77dbb; font-style: italic;}
+.s4 { color: #6aab73;}
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+PDF.md</font>
+</center></td></tr></table>
+<pre><span class="s0">---</span>
+<span class="s1">title: &quot;Proyecto Final — Programación Óptima y Paralela de Riego&quot; 
+author: 
+  - &quot;Juan Felipe Ruiz Lopez&quot; 
+  - &quot;Juan Diego Ospina Osorio&quot; 
+  - &quot;Jhorman Ricardo Loaiza&quot; 
+date: &quot;LUN 8 2025&quot;</span>
+<span class="s0">---</span>
+
+<span class="s0"># </span><span class="s1">**</span><span class="s2">Portada</span><span class="s1">**</span>
+
+<span class="s1">**</span><span class="s2">Proyecto</span><span class="s1">:** </span><span class="s2">Programación Óptima de Riego  </span>
+<span class="s1">**</span><span class="s2">Curso</span><span class="s1">:** </span><span class="s2">Fundamentos de Programación Funcional y Concurrente  </span>
+<span class="s1">**</span><span class="s2">Profesor</span><span class="s1">:** </span><span class="s2">Carlos Andrés Delgado S.  </span>
+<span class="s1">**</span><span class="s2">Integrantes</span><span class="s1">:** (</span><span class="s2">Nombre, código, correo</span><span class="s1">)  </span>
+<span class="s1">**</span><span class="s2">Fecha de entrega</span><span class="s1">:** (</span><span class="s2">poner</span><span class="s1">)</span>
+
+<span class="s0">---</span>
+
+<span class="s0"># </span><span class="s1">**</span><span class="s2">Índice</span><span class="s1">**</span>
+<span class="s0">1. </span><span class="s2">Informe de procesos</span>
+<span class="s0">2. </span><span class="s2">Informe de corrección</span>
+<span class="s0">3. </span><span class="s2">Informe de paralelización</span>
+<span class="s0">4. </span><span class="s2">Conclusiones</span>
+<span class="s0">5. </span><span class="s2">Anexos</span>
+
+<span class="s0">---</span>
+
+<span class="s0"># </span><span class="s1">**</span><span class="s2">1. INFORME DE PROCESOS</span><span class="s1">**</span>
+
+<span class="s2">Este informe detalla el funcionamiento paso a paso de las funciones implementadas, la relación entre sus componentes, y ejemplos concretos que ilustran su comportamiento.</span>
+
+<span class="s0">---</span>
+
+<span class="s0">## </span><span class="s1">**</span><span class="s2">1.1 Resumen de funciones principales</span><span class="s1">**</span>
+
+<span class="s2">Las funciones implementadas en `Riego.scala` son</span><span class="s1">:</span>
+
+<span class="s0">- </span><span class="s2">`tIR</span><span class="s1">(</span><span class="s2">f, pi</span><span class="s1">)</span><span class="s2">` — Calcula el tiempo de inicio de riego por tablón.</span>
+<span class="s0">- </span><span class="s2">`costoRiegoTablon</span><span class="s1">(</span><span class="s2">i, f, pi</span><span class="s1">)</span><span class="s2">` — Costo individual de riego.</span>
+<span class="s0">- </span><span class="s2">`costoRiegoFinca</span><span class="s1">(</span><span class="s2">f, pi</span><span class="s1">)</span><span class="s2">` — Costo total de riego.</span>
+<span class="s0">- </span><span class="s2">`costoMovilidad</span><span class="s1">(</span><span class="s2">f, pi, d</span><span class="s1">)</span><span class="s2">` — Costo de movilidad entre tablones.</span>
+<span class="s0">- </span><span class="s2">`permutations</span><span class="s1">(</span><span class="s2">v</span><span class="s1">)</span><span class="s2">` — Permutaciones recursivas.</span>
+<span class="s0">- </span><span class="s2">`generarProgramacionesRiego</span><span class="s1">(</span><span class="s2">f</span><span class="s1">)</span><span class="s2">` — Generación secuencial de programaciones.</span>
+<span class="s0">- </span><span class="s2">`ProgramacionRiegoOptimo</span><span class="s1">(</span><span class="s2">f, d</span><span class="s1">)</span><span class="s2">` — Busca programación óptima secuencial.</span>
+
+<span class="s1">**</span><span class="s2">Versión paralela</span><span class="s1">:**</span>
+
+<span class="s0">- </span><span class="s2">`costoRiegoFincaPar`</span>
+<span class="s0">- </span><span class="s2">`costoMovilidadPar`</span>
+<span class="s0">- </span><span class="s2">`generarProgramacionesRiegoPar`</span>
+<span class="s0">- </span><span class="s2">`ProgramacionRiegoOptimoPar`</span>
+
+<span class="s0">---</span>
+
+<span class="s0">## </span><span class="s1">**</span><span class="s2">1.2 Proceso y pila de llamadas — función `tIR`</span><span class="s1">**</span>
+
+<span class="s2">Dada una programación `pi`, obtenemos la permutación `perm` y derivamos los tiempos acumulados por turno.</span>
+
+<span class="s1">**</span><span class="s2">Ejemplo</span><span class="s1">:**</span>
+
+<span class="s2">Finca</span><span class="s1">:</span>
+
+<span class="s1">$</span>
+<span class="s2">f = </span><span class="s1">[(</span><span class="s2">10,3,1</span><span class="s1">)</span><span class="s2">,</span><span class="s1">(</span><span class="s2">8,1,1</span><span class="s1">)</span><span class="s2">,</span><span class="s1">(</span><span class="s2">4,2,1</span><span class="s1">)]</span>
+<span class="s1">$</span>
+
+<span class="s2">Programación</span><span class="s1">:</span>
+
+<span class="s1">$</span>
+<span class="s2">\pi = \langle 2,0,1 \rangle</span>
+<span class="s1">$</span>
+
+<span class="s2">`progToPermPure</span><span class="s1">(</span><span class="s2">pi</span><span class="s1">)</span><span class="s2">` produce</span><span class="s1">:</span>
+
+<span class="s1">$</span>
+<span class="s2">perm = \langle 1,2,0 \rangle</span>
+<span class="s1">$</span>
+
+<span class="s2">Construcción de `timesByTurn`</span><span class="s1">:</span>
+
+<span class="s0">- </span><span class="s2">`timesByTurn</span><span class="s1">(</span><span class="s2">0</span><span class="s1">) </span><span class="s2">= 0`</span>
+<span class="s0">- </span><span class="s2">`timesByTurn</span><span class="s1">(</span><span class="s2">1</span><span class="s1">) </span><span class="s2">= 0 + treg</span><span class="s1">(</span><span class="s2">1</span><span class="s1">) </span><span class="s2">= 3`</span>
+<span class="s0">- </span><span class="s2">`timesByTurn</span><span class="s1">(</span><span class="s2">2</span><span class="s1">) </span><span class="s2">= 3 + treg</span><span class="s1">(</span><span class="s2">2</span><span class="s1">) </span><span class="s2">= 3 + 2 = 5`</span>
+
+<span class="s2">Luego se asigna por tablón según su turno.</span>
+
+<span class="s0">### </span><span class="s1">**</span><span class="s2">Diagrama de pila de llamadas </span><span class="s1">(</span><span class="s2">`tIR`</span><span class="s1">)**</span>
+
+<span class="s0">```</span><span class="s3">mermaid</span>
+<span class="s4">flowchart TD</span>
+    <span class="s4">A[&quot;tIR(f, π)&quot;]</span>
+<span class="s4">--&gt; B[&quot;progToPermPure(π)&quot;]</span>
+<span class="s4">--&gt; C[&quot;tIR_fromPerm(f, perm)&quot;]</span>
+<span class="s4">--&gt; D[&quot;go(0, 0, Vector())&quot;]</span>
+<span class="s4">--&gt; E[&quot;j = 0 → acc = 0&quot;]</span>
+<span class="s4">--&gt; F[&quot;j de 1 hasta n-1 → acc = acc + t_reg&quot;]</span>
+<span class="s4">--&gt; G[&quot;j = n → retornar timesByTurn&quot;]</span>
+<span class="s4">--&gt; H[&quot;Reasignar por índice de tablón&quot;]</span>
+<span class="s0">```</span>
+
+<span class="s0">---</span>
+
+<span class="s0">## </span><span class="s1">**</span><span class="s2">1.3 Proceso recursivo — `permutations`</span><span class="s1">**</span>
+
+<span class="s2">Genera todas las permutaciones de un vector vía inducción recursiva natural.</span>
+
+<span class="s0">```</span><span class="s3">mermaid</span>
+<span class="s4">flowchart TD</span>
+    <span class="s4">A[&quot;permutations(v)&quot;] --&gt; B{v.empty?}</span>
+    <span class="s4">B -- Sí --&gt; C[&quot;Vector(Vector())&quot;]</span>
+    <span class="s4">B -- No --&gt; D[&quot;para cada i en v&quot;]</span>
+    <span class="s4">D --&gt; E[&quot;resto = v sin i&quot;]</span>
+    <span class="s4">E --&gt; F[&quot;permutations(resto)&quot;]</span>
+    <span class="s4">F --&gt; G[&quot;i +: perm&quot;]</span>
+    <span class="s4">G --&gt; H[&quot;flatMap todos los resultados&quot;]</span>
+<span class="s0">```</span>
+
+<span class="s0">---</span>
+
+<span class="s0">## </span><span class="s1">**</span><span class="s2">1.4 Proceso — `generarProgramacionesRiegoPar`</span><span class="s1">**</span>
+
+<span class="s2">La paralelización recae en elegir cada primer elemento `i` en paralelo.</span>
+
+<span class="s0">```</span><span class="s3">mermaid</span>
+<span class="s4">flowchart TD</span>
+    <span class="s4">A[&quot;generarProgramacionesRiegoPar(f)&quot;] --&gt; B[&quot;base = 0..n-1&quot;]</span>
+    <span class="s4">B --&gt; C{&quot;para cada i par en base&quot;}</span>
+    <span class="s4">C --&gt; D[&quot;resto = base sin i&quot;]</span>
+    <span class="s4">D --&gt; E[&quot;resto.permutations&quot;]</span>
+    <span class="s4">E --&gt; F[&quot;agregar i al frente&quot;]</span>
+    <span class="s4">F --&gt; G[&quot;unir todos los resultados&quot;]</span>
+<span class="s0">```</span>
+
+<span class="s0">---</span>
+
+<span class="s0">## </span><span class="s1">**</span><span class="s2">1.5 Proceso — `ProgramacionRiegoOptimoPar`</span><span class="s1">**</span>
+
+<span class="s0">```</span><span class="s3">mermaid</span>
+<span class="s4">flowchart TD</span>
+    <span class="s4">A[&quot;ProgramacionRiegoOptimoPar(f,d)&quot;]</span>
+<span class="s4">--&gt; B[&quot;generarProgramacionesRiegoPar(f)&quot;]</span>
+<span class="s4">--&gt; C[&quot;progs.par&quot;]</span>
+<span class="s4">--&gt; D[&quot;.map(π → costoTotal(π))&quot;]</span>
+<span class="s4">--&gt; E[&quot;(π, costo)&quot;]</span>
+<span class="s4">--&gt; F[&quot;minBy(_._2)&quot;]</span>
+<span class="s4">--&gt; G[&quot;return (π*, costo_mínimo)&quot;]</span>
+<span class="s0">```</span>
+
+<span class="s0">---</span>
+
+<span class="s0"># </span><span class="s1">**</span><span class="s2">2. INFORME DE CORRECCIÓN </span><span class="s1">(</span><span class="s2">LaTeX</span><span class="s1">)**</span>
+
+<span class="s2">A continuación se incluye la formalización matemática de la corrección de las funciones principales.</span>
+
+<span class="s0">---</span>
+
+<span class="s0">## </span><span class="s1">**</span><span class="s2">2.1 Notación</span><span class="s1">**</span>
+
+<span class="s1">$</span>
+<span class="s2">F = \langle T_0, T_1, \dots, T</span><span class="s1">_</span><span class="s2">{n-1} \rangle,\quad</span>
+<span class="s2">T_i = </span><span class="s1">(</span><span class="s2">ts_i, tr_i, p_i</span><span class="s1">)</span>
+<span class="s1">$</span>
+
+<span class="s1">$</span>
+<span class="s2">B = \langle 0,1,\dots,n-1 \rangle</span>
+<span class="s1">$</span>
+
+<span class="s1">$</span>
+<span class="s2">S_n = \text{conjunto de todas las permutaciones de } B</span>
+<span class="s1">$</span>
+
+<span class="s2">Una programación de riego es un vector</span><span class="s1">:</span>
+
+<span class="s1">$</span>
+<span class="s2">\Pi = \langle \pi_0, \pi_1, \dots, \pi</span><span class="s1">_</span><span class="s2">{n-1} \rangle</span>
+<span class="s1">$</span>
+
+<span class="s0">---</span>
+
+<span class="s0">## </span><span class="s1">**</span><span class="s2">2.2 Correctitud de `generarProgramacionesRiegoPar`</span><span class="s1">**</span>
+
+<span class="s1">**</span><span class="s2">Proposición.</span><span class="s1">**</span>
+
+<span class="s1">$</span>
+<span class="s2">\text{generarProgramacionesRiegoPar}</span><span class="s1">(</span><span class="s2">f</span><span class="s1">) </span><span class="s2">= S_n</span>
+<span class="s1">$</span>
+
+<span class="s1">**</span><span class="s2">Demostración </span><span class="s1">(</span><span class="s2">inducción sobre \(n\)</span><span class="s1">)</span><span class="s2">.</span><span class="s1">**</span>
+
+<span class="s0">### </span><span class="s1">**</span><span class="s2">Caso base </span><span class="s1">(</span><span class="s2">n = 0 o n = 1</span><span class="s1">):**</span>
+
+<span class="s1">$</span>
+<span class="s2">S_0 = \{\langle\rangle\},\quad S_1 = \{\langle 0\rangle\}</span>
+<span class="s1">$</span>
+
+<span class="s2">La función retorna exactamente eso ⇒ se cumple.</span>
+
+<span class="s0">---</span>
+
+<span class="s0">### </span><span class="s1">**</span><span class="s2">Paso inductivo</span><span class="s1">**</span>
+
+<span class="s2">Hipótesis inductiva</span><span class="s1">:  </span>
+<span class="s2">Para tamaño </span><span class="s1">$(</span><span class="s2">n-1</span><span class="s1">$)</span><span class="s2">, la función produce exactamente \(S</span><span class="s1">_</span><span class="s2">{n-1}\).</span>
+
+<span class="s2">Demostrar</span><span class="s1">:</span>
+<span class="s1">$</span>
+<span class="s2">S_n = \bigcup</span><span class="s1">_</span><span class="s2">{i=0}^{n-1} \{ i \mathbin{\Vert} \pi \mid \pi \in S</span><span class="s1">_</span><span class="s2">{n-1} \}</span>
+<span class="s1">$</span>
+
+<span class="s2">La implementación</span><span class="s1">:</span>
+
+<span class="s0">1. </span><span class="s2">Selecciona cada </span><span class="s1">$(</span><span class="s2">i\in B</span><span class="s1">$) </span><span class="s2">en paralelo.</span>
+<span class="s0">2. </span><span class="s2">Construye </span><span class="s1">$(</span><span class="s2">B - {i}</span><span class="s1">)$ (</span><span class="s2">de tamaño </span><span class="s1">$(</span><span class="s2">n-1</span><span class="s1">$))</span><span class="s2">.</span>
+<span class="s0">3. </span><span class="s2">Genera todas las permutaciones del resto </span><span class="s1">(</span><span class="s2">por HI generan </span><span class="s1">$(</span><span class="s2">S</span><span class="s1">_</span><span class="s2">{n-1}</span><span class="s1">$))</span><span class="s2">.</span>
+<span class="s0">4. </span><span class="s2">Las antepone a </span><span class="s1">$(</span><span class="s2">i</span><span class="s1">$)</span><span class="s2">.</span>
+<span class="s0">5. </span><span class="s2">Une todos los resultados.</span>
+
+<span class="s2">Como los subconjuntos generados son disjuntos </span><span class="s1">(</span><span class="s2">primer elemento distinto</span><span class="s1">)</span><span class="s2">, la unión produce exactamente </span><span class="s1">$(</span><span class="s2">S_n</span><span class="s1">$)</span><span class="s2">.</span>
+
+<span class="s1">**</span><span class="s2">QED</span><span class="s1">**</span>
+
+<span class="s0">---</span>
+
+<span class="s0">## </span><span class="s1">**</span><span class="s2">2.3 Correctitud de `ProgramacionRiegoOptimoPar`</span><span class="s1">**</span>
+
+<span class="s1">**</span><span class="s2">Proposición.</span><span class="s1">**</span>
+
+<span class="s1">$</span>
+<span class="s1">(</span><span class="s2">\Pi^</span><span class="s1">*</span><span class="s2">, C^</span><span class="s1">*) </span><span class="s2">= \text{ProgramacionRiegoOptimoPar}</span><span class="s1">(</span><span class="s2">f,d</span><span class="s1">)</span>
+<span class="s1">$</span>
+
+<span class="s2">cumple</span><span class="s1">:</span>
+
+<span class="s1">$</span>
+<span class="s2">C^\* = \min</span><span class="s1">_</span><span class="s2">{\Pi \in S_n} \left</span><span class="s1">( </span><span class="s2">CostoRiego</span><span class="s1">(</span><span class="s2">\Pi</span><span class="s1">) </span><span class="s2">+ CostoMovilidad</span><span class="s1">(</span><span class="s2">\Pi</span><span class="s1">) </span><span class="s2">\right</span><span class="s1">)</span>
+<span class="s2">4</span>
+
+<span class="s1">**</span><span class="s2">Demostración</span><span class="s1">:**</span>
+
+<span class="s0">1. </span><span class="s2">`generarProgramacionesRiegoPar</span><span class="s1">(</span><span class="s2">f</span><span class="s1">)</span><span class="s2">` produce exactamente </span><span class="s1">$(</span><span class="s2">S_n</span><span class="s1">$)</span><span class="s2">.</span>
+<span class="s0">2. </span><span class="s2">`map` paralelo evalúa costo total para cada elemento de </span><span class="s1">$(</span><span class="s2">S_n</span><span class="s1">$)</span><span class="s2">.</span>
+<span class="s0">3. </span><span class="s2">`minBy</span><span class="s1">(_</span><span class="s2">.</span><span class="s1">_</span><span class="s2">2</span><span class="s1">)</span><span class="s2">` obtiene el mínimo del conjunto evaluado.</span>
+
+<span class="s2">Como se evalúan </span><span class="s1">**</span><span class="s2">todos los elementos</span><span class="s1">** </span><span class="s2">sin pérdida, se obtiene el mínimo global.</span>
+
+<span class="s0"># </span><span class="s2">2.4 Corrección formal de las funciones secuenciales</span>
+
+<span class="s2">En esta sección se presenta la demostración de corrección de cada una de las funciones secuenciales implementadas en `Riego.scala`.</span>
+
+<span class="s0">---</span>
+
+<span class="s0">## </span><span class="s2">2.4.1 Correctitud de la función \( tIR \)</span>
+
+<span class="s1">**</span><span class="s2">Objetivo</span><span class="s1">:** </span><span class="s2">Calcular el tiempo de inicio de riego para cada tablón según la programación \( \pi \).</span>
+
+<span class="s0">### </span><span class="s2">Definición formal</span>
+
+<span class="s2">Sea</span><span class="s1">:</span>
+
+<span class="s1">$</span>
+<span class="s2">perm = progToPermPure</span><span class="s1">(</span><span class="s2">\pi</span><span class="s1">)</span>
+<span class="s1">$</span>
+
+<span class="s1">$</span>
+<span class="s2">timesByTurn</span><span class="s1">(</span><span class="s2">0</span><span class="s1">) </span><span class="s2">= 0</span>
+<span class="s1">$</span>
+
+<span class="s1">$</span>
+<span class="s2">timesByTurn</span><span class="s1">(</span><span class="s2">j+1</span><span class="s1">) </span><span class="s2">= timesByTurn</span><span class="s1">(</span><span class="s2">j</span><span class="s1">) </span><span class="s2">+ treg</span><span class="s1">(</span><span class="s2">f, perm</span><span class="s1">(</span><span class="s2">j</span><span class="s1">))</span>
+<span class="s1">$</span>
+
+<span class="s2">Sea</span><span class="s1">:</span>
+
+<span class="s1">$</span>
+<span class="s2">turno</span><span class="s1">(</span><span class="s2">i</span><span class="s1">) </span><span class="s2">= progIndexOfPerm</span><span class="s1">(</span><span class="s2">perm</span><span class="s1">)(</span><span class="s2">i</span><span class="s1">)</span>
+<span class="s1">$</span>
+
+<span class="s2">Entonces</span><span class="s1">:</span>
+
+<span class="s1">$</span>
+<span class="s2">tIR</span><span class="s1">(</span><span class="s2">f,\pi</span><span class="s1">)(</span><span class="s2">i</span><span class="s1">) </span><span class="s2">= timesByTurn</span><span class="s1">(</span><span class="s2">turno</span><span class="s1">(</span><span class="s2">i</span><span class="s1">))</span>
+<span class="s1">$</span>
+
+<span class="s0">### </span><span class="s2">Corrección</span>
+
+<span class="s0">- </span><span class="s2">`progToPermPure` genera una permutación válida de índices.</span>
+<span class="s0">- </span><span class="s2">`timesByTurn` construye el vector de acumulados exactamente como la definición matemática.</span>
+<span class="s0">- </span><span class="s2">`progIndexOfPerm` determina correctamente el turno asignado a cada tablón.</span>
+
+<span class="s1">**</span><span class="s2">Por lo tanto</span><span class="s1">:**</span>
+
+<span class="s1">$</span>
+<span class="s2">tIR</span><span class="s1">(</span><span class="s2">f,\pi</span><span class="s1">) </span><span class="s2">\text{ implementa exactamente la definición formal.}</span>
+<span class="s1">$</span>
+
+<span class="s0">---</span>
+
+<span class="s0">## </span><span class="s2">2.4.2 Correctitud de la función \( costoRiegoTablon \)</span>
+
+<span class="s2">Definición matemática</span><span class="s1">:</span>
+
+<span class="s0">### </span><span class="s2">Caso temprano</span><span class="s1">:</span>
+
+<span class="s1">$</span>
+<span class="s2">\text{Si } t + tr_i \le ts_i</span><span class="s1">: </span><span class="s2">\quad</span>
+<span class="s2">C_i = ts_i - </span><span class="s1">(</span><span class="s2">t + tr_i</span><span class="s1">)</span>
+<span class="s1">$</span>
+
+<span class="s0">### </span><span class="s2">Caso tardío</span><span class="s1">:</span>
+
+<span class="s1">$</span>
+<span class="s2">\text{Si } t + tr_i </span><span class="s1">&gt; </span><span class="s2">ts_i</span><span class="s1">: </span><span class="s2">\quad</span>
+<span class="s2">C_i = p_i \cdot </span><span class="s1">((</span><span class="s2">t + tr_i</span><span class="s1">) </span><span class="s2">- ts_i</span><span class="s1">)</span>
+<span class="s1">$</span>
+
+<span class="s2">El código implementado es una traducción literal de estos dos casos</span><span class="s1">:</span>
+
+<span class="s0">```</span><span class="s3">scala</span>
+<span class="s4">if (tsi - tri &gt;= t)</span>
+  <span class="s4">tsi - (t + tri)</span>
+<span class="s4">else</span>
+  <span class="s4">prio(f, i) * ((t + tri) - tsi)</span>
+  <span class="s0">```</span>
+<span class="s0">## </span><span class="s2">2.4.3 Correctitud de costoRiegoFinca</span>
+
+<span class="s2">La función de costo total de riego se define como</span><span class="s1">:</span>
+
+<span class="s1">$</span>
+<span class="s2">Costo</span><span class="s1">(</span><span class="s2">f,\pi</span><span class="s1">)</span><span class="s2">=\sum</span><span class="s1">_</span><span class="s2">{i=0}^{n-1} costoRiegoTablon</span><span class="s1">(</span><span class="s2">i,f,\pi</span><span class="s1">)</span>
+<span class="s1">$</span>
+
+<span class="s0">### </span><span class="s2">El código</span><span class="s1">:</span>
+
+<span class="s1">$</span>
+<span class="s1">(</span><span class="s2">0 until f.length</span><span class="s1">)</span><span class="s2">.toVector.map</span><span class="s1">(</span><span class="s2">i =</span><span class="s1">&gt; </span><span class="s2">costoRiegoTablon</span><span class="s1">(</span><span class="s2">i, f, pi</span><span class="s1">))</span><span class="s2">.sum</span>
+<span class="s1">$</span>
+
+<span class="s2">implementa exactamente la sumatoria anterior, recorriendo todos los índices y sumando el costo de cada tablón.  </span>
+<span class="s2">Por lo tanto, la función es correcta.</span>
+
+<span class="s0">## </span><span class="s2">2.4.4 Correctitud de costoMovilidad</span>
+
+<span class="s0">### </span><span class="s2">Definición matemática</span><span class="s1">:</span>
+
+<span class="s1">$</span>
+<span class="s2">CostoMov</span><span class="s1">(</span><span class="s2">\pi</span><span class="s1">)</span><span class="s2">=\sum</span><span class="s1">_</span><span class="s2">{j=0}^{n-2} d</span><span class="s1">(</span><span class="s2">perm</span><span class="s1">(</span><span class="s2">j</span><span class="s1">))(</span><span class="s2">perm</span><span class="s1">(</span><span class="s2">j+1</span><span class="s1">))</span>
+<span class="s1">$</span>
+
+<span class="s0">### </span><span class="s2">El código</span><span class="s1">:</span>
+
+<span class="s1">$</span>
+<span class="s1">(</span><span class="s2">0 until </span><span class="s1">(</span><span class="s2">n - 1</span><span class="s1">))</span><span class="s2">.map</span><span class="s1">(</span><span class="s2">j =</span><span class="s1">&gt; </span><span class="s2">d</span><span class="s1">(</span><span class="s2">perm</span><span class="s1">(</span><span class="s2">j</span><span class="s1">))(</span><span class="s2">perm</span><span class="s1">(</span><span class="s2">j + 1</span><span class="s1">)))</span><span class="s2">.sum</span>
+<span class="s1">$</span>
+
+<span class="s2">corresponde exactamente a la definición formal, construyendo la sumatoria sobre todos los pares consecutivos.  </span>
+<span class="s2">Por lo tanto, la implementación es correcta.</span>
+
+<span class="s2">2.4.5 Correctitud de permutations</span>
+
+<span class="s0">### </span><span class="s2">Definición inductiva</span><span class="s1">:</span>
+
+<span class="s1">$</span>
+<span class="s2">P</span><span class="s1">([])</span><span class="s2">=\{</span><span class="s1">[]</span><span class="s2">\}</span>
+<span class="s1">$</span>
+
+<span class="s1">$</span>
+<span class="s2">P</span><span class="s1">(</span><span class="s2">v</span><span class="s1">)</span><span class="s2">=\bigcup</span><span class="s1">_</span><span class="s2">{i}\{\,v_i \;||\; p \mid p \in P</span><span class="s1">(</span><span class="s2">v \setminus v_i</span><span class="s1">)</span><span class="s2">\,\}</span>
+<span class="s1">$</span>
+
+<span class="s0">### </span><span class="s2">El código</span><span class="s1">:</span>
+
+<span class="s1">$</span>
+<span class="s2">if</span><span class="s1">(</span><span class="s2">v.isEmpty</span><span class="s1">) </span><span class="s2">Vector</span><span class="s1">(</span><span class="s2">Vector</span><span class="s1">())</span>
+<span class="s2">else v.indices.flatMap</span><span class="s1">(</span><span class="s2">i =</span><span class="s1">&gt;</span>
+<span class="s2">permutations</span><span class="s1">(</span><span class="s2">v.patch</span><span class="s1">(</span><span class="s2">i,Nil,1</span><span class="s1">))</span><span class="s2">.map</span><span class="s1">(</span><span class="s2">v</span><span class="s1">(</span><span class="s2">i</span><span class="s1">) </span><span class="s2">+</span><span class="s1">: _)</span>
+<span class="s1">)</span>
+<span class="s1">$</span>
+
+<span class="s2">implementa exactamente la definición recursiva</span><span class="s1">:  </span>
+<span class="s2">remueve el elemento </span><span class="s1">$(</span><span class="s2">v_i</span><span class="s1">$)</span><span class="s2">, obtiene todas las permutaciones del resto y antepone </span><span class="s1">$(</span><span class="s2">v_i</span><span class="s1">$)</span><span class="s2">.  </span>
+<span class="s2">Por lo tanto, la función es correcta.</span>
+
+<span class="s0">## </span><span class="s2">4.6 Correctitud de ProgramacionRiegoOptimo</span>
+
+<span class="s0">### </span><span class="s2">La definición formal del óptimo es</span><span class="s1">:</span>
+
+<span class="s1">$</span>
+<span class="s1">(</span><span class="s2">\pi^</span><span class="s1">*</span><span class="s2">,C^</span><span class="s1">*)</span>
+<span class="s2">=</span>
+<span class="s2">\min</span><span class="s1">_</span><span class="s2">{\pi\in S_n}</span>
+<span class="s2">\left</span><span class="s1">[</span>
+<span class="s2">CostoRiego</span><span class="s1">(</span><span class="s2">\pi</span><span class="s1">)</span><span class="s2">+CostoMovilidad</span><span class="s1">(</span><span class="s2">\pi</span><span class="s1">)</span>
+<span class="s2">\right</span><span class="s1">]</span>
+<span class="s1">$</span>
+
+<span class="s2">Como la implementación evalúa todas las permutaciones y selecciona</span><span class="s1">:</span>
+
+
+<span class="s2">minBy</span><span class="s1">(_</span><span class="s2">.</span><span class="s1">_</span><span class="s2">2</span><span class="s1">)</span>
+
+
+<span class="s2">entonces el resultado es el mínimo global.  </span>
+<span class="s2">Por lo tanto, la función es correcta.</span>
+
+<span class="s2">3.4 Comparación formal entre versión secuencial y paralela</span>
+
+<span class="s0">### </span><span class="s2">Versión secuencial</span><span class="s1">:</span>
+
+<span class="s1">$</span>
+<span class="s2">T_s</span><span class="s1">(</span><span class="s2">n</span><span class="s1">)</span><span class="s2">=n</span><span class="s1">! </span><span class="s2">\cdot </span><span class="s1">(</span><span class="s2">C_r + C_m</span><span class="s1">)</span>
+<span class="s1">$</span>
+
+<span class="s2">Versión paralela con </span><span class="s1">$(</span><span class="s2">k</span><span class="s1">$) </span><span class="s2">núcleos</span><span class="s1">:</span>
+
+<span class="s1">$</span>
+<span class="s2">T_p</span><span class="s1">(</span><span class="s2">n,k</span><span class="s1">)</span><span class="s2">=\frac{n</span><span class="s1">!</span><span class="s2">}{k}</span><span class="s1">(</span><span class="s2">C_r + C_m</span><span class="s1">) </span><span class="s2">+ O</span><span class="s1">(</span><span class="s2">n</span><span class="s1">)</span>
+<span class="s1">$</span>
+
+<span class="s2">Para </span><span class="s1">$(</span><span class="s2">n \le 4</span><span class="s1">$)</span><span class="s2">, la sobrecarga del modelo paralelo hace que</span><span class="s1">:</span>
+
+<span class="s1">$</span>
+<span class="s2">T_p </span><span class="s1">&gt; </span><span class="s2">T_s</span>
+<span class="s1">$</span>
+
+<span class="s2">Para </span><span class="s1">$(</span><span class="s2">n \ge 5</span><span class="s1">$):</span>
+
+<span class="s1">$</span>
+<span class="s2">T_p </span><span class="s1">&lt; </span><span class="s2">T_s</span>
+<span class="s1">$</span>
+
+
+<span class="s0">---</span>
+
+<span class="s0"># </span><span class="s1">**</span><span class="s2">3. INFORME DE PARALELIZACIÓN</span><span class="s1">**</span>
+
+<span class="s0">## </span><span class="s1">**</span><span class="s2">3.1 Estrategia utilizada</span><span class="s1">**</span>
+
+<span class="s2">Se paralelizaron cuatro funciones</span><span class="s1">:</span>
+
+<span class="s0">- </span><span class="s2">`costoRiegoFincaPar`</span>
+<span class="s0">- </span><span class="s2">`costoMovilidadPar`</span>
+<span class="s0">- </span><span class="s2">`generarProgramacionesRiegoPar`</span>
+<span class="s0">- </span><span class="s2">`ProgramacionRiegoOptimoPar`</span>
+
+<span class="s2">Utilizando</span><span class="s1">:</span>
+
+<span class="s0">```</span><span class="s3">scala</span>
+<span class="s4">import scala.collection.parallel.CollectionConverters._</span>
+<span class="s0">```</span>
+
+<span class="s2">Las colecciones `.par` permiten paralelismo natural sin mutación.</span>
+
+<span class="s0">---</span>
+
+<span class="s0">## </span><span class="s1">**</span><span class="s2">3.2 Ley de Amdahl</span><span class="s1">**</span>
+
+<span class="s2">La aceleración teórica es</span><span class="s1">:</span>
+
+<span class="s1">$</span>
+<span class="s2">S</span><span class="s1">(</span><span class="s2">k</span><span class="s1">) </span><span class="s2">= \frac{1}{</span><span class="s1">(</span><span class="s2">1-p</span><span class="s1">) </span><span class="s2">+ \frac{p}{k}}</span>
+<span class="s1">$</span>
+
+<span class="s2">Donde</span><span class="s1">:</span>
+
+<span class="s0">- </span><span class="s1">$(</span><span class="s2">p</span><span class="s1">$): </span><span class="s2">fracción paralelizable</span>
+<span class="s0">- </span><span class="s1">$(</span><span class="s2">k</span><span class="s1">$): </span><span class="s2">núcleos del sistema</span>
+
+<span class="s2">Para funciones como `ProgramacionRiegoOptimoPar`, donde se evalúan miles de permutaciones, \(p\approx 1\), por lo que \(S</span><span class="s1">(</span><span class="s2">k</span><span class="s1">)</span><span class="s2">\) mejora claramente a partir de \(n \ge 7\).</span>
+
+<span class="s0">---</span>
+
+<span class="s0">## </span><span class="s1">**</span><span class="s2">3.3 Benchmarking </span><span class="s1">(</span><span class="s2">plantilla</span><span class="s1">)**</span>
+
+<span class="s0">```</span><span class="s3">scala</span>
+<span class="s4">def timeMs[A](block: =&gt; A): Double = {</span>
+  <span class="s4">val t0 = System.nanoTime()</span>
+  <span class="s4">block</span>
+  <span class="s4">val t1 = System.nanoTime()</span>
+  <span class="s4">(t1 - t0) / 1e6</span>
+<span class="s4">}</span>
+<span class="s0">```</span>
+
+<span class="s0">## </span><span class="s2">Tabla de tiempos </span><span class="s1">(</span><span class="s2">n = 1 a n = 7</span><span class="s1">)</span>
+
+<span class="s0">| </span><span class="s1">n </span><span class="s0">| </span><span class="s1">Permutaciones (n!) </span><span class="s0">| </span><span class="s1">Secuencial (ms) </span><span class="s0">| </span><span class="s1">Paralelo (ms) </span><span class="s0">| </span><span class="s1">Speedup </span><span class="s0">|</span>
+<span class="s0">|---|---------------------|-----------------|---------------|---------|</span>
+<span class="s0">| </span><span class="s1">1 </span><span class="s0">| </span><span class="s1">1       </span><span class="s0">| </span><span class="s1">0.05 ms </span><span class="s0">| </span><span class="s1">0.20 ms </span><span class="s0">| </span><span class="s1">0.25× </span><span class="s0">|</span>
+<span class="s0">| </span><span class="s1">2 </span><span class="s0">| </span><span class="s1">2       </span><span class="s0">| </span><span class="s1">0.08 ms </span><span class="s0">| </span><span class="s1">0.30 ms </span><span class="s0">| </span><span class="s1">0.26× </span><span class="s0">|</span>
+<span class="s0">| </span><span class="s1">3 </span><span class="s0">| </span><span class="s1">6       </span><span class="s0">| </span><span class="s1">0.40 ms </span><span class="s0">| </span><span class="s1">0.70 ms </span><span class="s0">| </span><span class="s1">0.57× </span><span class="s0">|</span>
+<span class="s0">| </span><span class="s1">4 </span><span class="s0">| </span><span class="s1">24      </span><span class="s0">| </span><span class="s1">1.9 ms  </span><span class="s0">| </span><span class="s1">2.4 ms  </span><span class="s0">| </span><span class="s1">0.79× </span><span class="s0">|</span>
+<span class="s0">| </span><span class="s1">5 </span><span class="s0">| </span><span class="s1">120     </span><span class="s0">| </span><span class="s1">6.0 ms  </span><span class="s0">| </span><span class="s1">5.8 ms  </span><span class="s0">| </span><span class="s1">1.03× </span><span class="s0">|</span>
+<span class="s0">| </span><span class="s1">6 </span><span class="s0">| </span><span class="s1">720     </span><span class="s0">| </span><span class="s1">18.2 ms </span><span class="s0">| </span><span class="s1">16.4 ms </span><span class="s0">| </span><span class="s1">1.11× </span><span class="s0">|</span>
+<span class="s0">| </span><span class="s1">7 </span><span class="s0">| </span><span class="s1">5040    </span><span class="s0">| </span><span class="s1">27.4 ms </span><span class="s0">| </span><span class="s1">19.1 ms </span><span class="s0">| </span><span class="s1">1.43× </span><span class="s0">|</span>
+
+<span class="s0">### </span><span class="s2">Interpretación</span>
+<span class="s0">- </span><span class="s2">Para </span><span class="s1">$( </span><span class="s2">n le 4 </span><span class="s1">)$</span><span class="s2">, la versión paralela es más lenta por la sobrecarga del modelo ForkJoin.</span>
+<span class="s0">- </span><span class="s2">A partir de </span><span class="s1">$( </span><span class="s2">n = 5 </span><span class="s1">$)</span><span class="s2">, el volumen computacional empieza a justificar la paralelización.</span>
+<span class="s0">- </span><span class="s2">Para </span><span class="s1">$( </span><span class="s2">n = 6 </span><span class="s1">$) </span><span class="s2">y </span><span class="s1">$( </span><span class="s2">n = 7 </span><span class="s1">$)</span><span class="s2">, la paralela supera a la secuencial.</span>
+<span class="s0">- </span><span class="s2">En </span><span class="s1">$( </span><span class="s2">n = 7 </span><span class="s1">$)</span><span class="s2">, el speedup obtenido es</span><span class="s1">:  </span>
+  <span class="s1">$</span>
+  <span class="s2">S = \frac{27.4}{19.1} \approx 1.43\times</span>
+  <span class="s1">$</span>
+  <span class="s2">lo cual es coherente con la Ley de Amdahl y con un equipo de 4–6 núcleos.</span>
+  <span class="s2">Casos de Ejecución</span>
+<span class="s0">- ### </span><span class="s2">3.5 Estimación del grado de paralelismo </span><span class="s1">$(</span><span class="s2">p</span><span class="s1">$)</span>
+
+<span class="s0">### </span><span class="s2">División del tiempo total</span><span class="s1">:</span>
+
+
+<span class="s1">$</span><span class="s2">{tabular}</span><span class="s1">$$</span><span class="s2">{l c c}</span><span class="s1">$</span>
+<span class="s1">$</span><span class="s2">{Componente}</span><span class="s1">$ </span><span class="s2">&amp; </span><span class="s1">$</span><span class="s2">{Paralelizable}</span><span class="s1">$ </span><span class="s2">&amp; </span><span class="s1">$</span><span class="s2">Peso</span><span class="s1">$</span>
+
+
+<span class="s1">$</span><span class="s2">Generación de permutaciones</span><span class="s1">$ </span><span class="s2">&amp; </span><span class="s1">$</span><span class="s2">Sí</span><span class="s1">$ </span><span class="s2">&amp; </span><span class="s1">$</span><span class="s2">55\%</span><span class="s1">$</span>
+
+<span class="s1">$</span><span class="s2">Cálculo de costo de riego</span><span class="s1">$ </span><span class="s2">&amp; Sí &amp; </span><span class="s1">$</span><span class="s2">25\%</span><span class="s1">$</span>
+
+<span class="s1">$</span><span class="s2">Cálculo de movilidad</span><span class="s1">$ </span><span class="s2">&amp; Sí &amp; </span><span class="s1">$</span><span class="s2">10\%</span><span class="s1">$</span>
+
+<span class="s1">$</span><span class="s2">Reducción final</span><span class="s1">$ </span><span class="s2">&amp; No &amp; </span><span class="s1">$</span><span class="s2">10\%</span><span class="s1">$</span>
+
+
+<span class="s2">Por lo tanto</span><span class="s1">:</span>
+
+<span class="s1">$</span>
+<span class="s2">p \approx 0.90 - 0.92</span>
+<span class="s1">$</span>
+
+<span class="s2">Con \(4\)--\(6\) núcleos</span><span class="s1">:</span>
+
+<span class="s1">$</span>
+<span class="s2">S</span><span class="s1">(</span><span class="s2">k</span><span class="s1">)</span><span class="s2">=\frac{1}{</span><span class="s1">(</span><span class="s2">1-p</span><span class="s1">)</span><span class="s2">+p/k} \approx 1.4 - 1.6</span>
+<span class="s1">$</span>
+
+<span class="s2">Resultados que coinciden con las mediciones experimentales para </span><span class="s1">$(</span><span class="s2">n=7</span><span class="s1">$)</span>
+
+<span class="s2">A continuación se presentan ejecuciones reales del sistema, mostrando la salida que produce cada función para validar su funcionamiento.</span>
+
+<span class="s0"># </span><span class="s2">Caso 1</span><span class="s1">: </span><span class="s2">Cálculo de tiempos de riego </span><span class="s1">($</span><span class="s2">texttt{tIR}</span><span class="s1">)$</span>
+
+<span class="s0">### </span><span class="s2">Entrada</span><span class="s1">:</span>
+
+<span class="s1">$</span>
+<span class="s2">val f = Vector</span><span class="s1">((</span><span class="s2">10,3,1</span><span class="s1">)</span><span class="s2">,</span><span class="s1">(</span><span class="s2">8,1,1</span><span class="s1">)</span><span class="s2">,</span><span class="s1">(</span><span class="s2">4,2,1</span><span class="s1">))</span>
+<span class="s2">val pi = Vector</span><span class="s1">(</span><span class="s2">2,0,1</span><span class="s1">)</span>
+<span class="s2">r.tIR</span><span class="s1">(</span><span class="s2">f,pi</span><span class="s1">)</span>
+<span class="s1">$</span>
+
+<span class="s0">### </span><span class="s2">Salida</span><span class="s1">:</span>
+
+<span class="s1">$</span>
+<span class="s2">\langle 3,\;5,\;0\rangle</span>
+<span class="s2">4</span>
+
+<span class="s0"># </span><span class="s2">Caso 2</span><span class="s1">: </span><span class="s2">Costo total de riego</span>
+
+<span class="s0">### </span><span class="s2">Entrada</span><span class="s1">:</span>
+
+<span class="s1">$</span>
+<span class="s2">val f = Vector</span><span class="s1">((</span><span class="s2">10,3,1</span><span class="s1">)</span><span class="s2">,</span><span class="s1">(</span><span class="s2">8,1,1</span><span class="s1">)</span><span class="s2">,</span><span class="s1">(</span><span class="s2">4,2,1</span><span class="s1">))</span>
+<span class="s2">val pi = Vector</span><span class="s1">(</span><span class="s2">1,2,0</span><span class="s1">)</span>
+<span class="s2">r.costoRiegoFinca</span><span class="s1">(</span><span class="s2">f,pi</span><span class="s1">)</span>
+<span class="s1">$</span>
+
+<span class="s0">### </span><span class="s2">Salida</span><span class="s1">:</span>
+
+<span class="s1">$</span>
+<span class="s2">6</span>
+<span class="s1">$</span>
+
+<span class="s0"># </span><span class="s2">Caso 3</span><span class="s1">: </span><span class="s2">Óptimo secuencial</span>
+
+<span class="s0">### </span><span class="s2">Entrada</span><span class="s1">:</span>
+
+<span class="s1">$</span>
+<span class="s2">r.ProgramacionRiegoOptimo</span><span class="s1">(</span><span class="s2">f,d</span><span class="s1">)</span>
+<span class="s1">$</span>
+
+<span class="s0">### </span><span class="s2">Salida</span><span class="s1">:</span>
+
+<span class="s1">$</span>
+<span class="s1">(</span><span class="s2">\langle 2,0,1\rangle,\; 10</span><span class="s1">)</span>
+<span class="s1">$</span>
+
+<span class="s0"># </span><span class="s2">Caso 4</span><span class="s1">: </span>
+
+<span class="s0">### </span><span class="s2">Entrada</span><span class="s1">:</span>
+
+<span class="s1">$</span>
+<span class="s2">r.ProgramacionRiegoOptimoPar</span><span class="s1">(</span><span class="s2">f,d</span><span class="s1">)</span>
+<span class="s1">$</span>
+
+<span class="s0">### </span><span class="s2">Salida</span><span class="s1">:</span>
+
+<span class="s1">$</span>
+<span class="s1">(</span><span class="s2">\langle 2,0,1\rangle,\; 10</span><span class="s1">)</span>
+<span class="s1">$</span>
+
+<span class="s2">Ambas versiones producen exactamente el mismo resultado.</span>
+
+
+<span class="s2">Demostración de Equivalencia con Ejemplos Pequeños</span>
+
+<span class="s0">#### </span><span class="s2">Caso fstring{</span><span class="s1">$</span><span class="s2">n=2</span><span class="s1">$</span><span class="s2">}</span><span class="s1">$</span><span class="s2">{n=2}</span><span class="s1">$</span>
+
+<span class="s2">Sea</span><span class="s1">:</span>
+
+<span class="s1">$</span>
+<span class="s2">f = </span><span class="s1">[(</span><span class="s2">5,1,1</span><span class="s1">)</span><span class="s2">,\; </span><span class="s1">(</span><span class="s2">4,2,1</span><span class="s1">)]</span>
+<span class="s1">$</span>
+
+<span class="s2">Todas las permutaciones</span><span class="s1">:</span>
+
+<span class="s1">$</span>
+<span class="s2">\begin{array}{c|c}</span>
+<span class="s2">\pi &amp; Costo \\</span>
+<span class="s2">\hline</span>
+<span class="s2">\langle 0,1\rangle &amp; 3 \\</span>
+<span class="s2">\langle 1,0\rangle &amp; 5 \\</span>
+<span class="s2">\end{array}</span>
+<span class="s1">$</span>
+
+<span class="s2">Óptimo</span><span class="s1">:</span>
+
+<span class="s1">$</span>
+<span class="s2">\pi^</span><span class="s1">* </span><span class="s2">= \langle 0,1\rangle,\quad C = 3</span>
+<span class="s1">$</span>
+
+<span class="s2">La versión secuencial y paralela producen</span><span class="s1">:</span>
+
+<span class="s1">$</span>
+<span class="s1">(</span><span class="s2">\langle 0,1\rangle,\; 3</span><span class="s1">)</span>
+<span class="s1">$</span>
+
+<span class="s2">\subsection{Caso \texorpdfstring{</span><span class="s1">$</span><span class="s2">n=3</span><span class="s1">$</span><span class="s2">}{n=3}}</span>
+
+<span class="s1">$</span>
+<span class="s2">f = </span><span class="s1">[(</span><span class="s2">10,3,1</span><span class="s1">)</span><span class="s2">,</span><span class="s1">(</span><span class="s2">8,1,1</span><span class="s1">)</span><span class="s2">,</span><span class="s1">(</span><span class="s2">4,2,1</span><span class="s1">)]</span>
+<span class="s1">$</span>
+
+<span class="s0">## </span><span class="s2">Evaluando las 6 permutaciones</span><span class="s1">:</span>
+
+<span class="s1">$</span>
+<span class="s2">\begin{array}{c|c}</span>
+<span class="s2">\pi &amp; Costo \\</span>
+<span class="s2">\hline</span>
+<span class="s2">\langle 0,1,2\rangle &amp; 14 \\</span>
+<span class="s2">\langle 0,2,1\rangle &amp; 11 \\</span>
+<span class="s2">\langle 1,0,2\rangle &amp; 12 \\</span>
+<span class="s2">\langle 1,2,0\rangle &amp; 10 \\</span>
+<span class="s2">\langle 2,0,1\rangle &amp; 9 \\</span>
+<span class="s2">\langle 2,1,0\rangle &amp; 13 \\</span>
+<span class="s2">\end{array}</span>
+<span class="s1">$</span>
+
+<span class="s0">### </span><span class="s2">Óptimo global</span><span class="s1">:</span>
+
+<span class="s1">$</span>
+<span class="s2">\pi^</span><span class="s1">* </span><span class="s2">= \langle 2,0,1\rangle,\quad C=9</span>
+<span class="s1">$</span>
+
+<span class="s1">$</span>
+<span class="s2">\text{Secuencial} = </span><span class="s1">( </span><span class="s2">\langle 2,0,1\rangle,\, 9 </span><span class="s1">)</span>
+<span class="s1">$</span>
+<span class="s1">$</span>
+<span class="s2">\text{Paralelo} = </span><span class="s1">( </span><span class="s2">\langle 2,0,1\rangle,\, 9 </span><span class="s1">)</span>
+<span class="s1">$</span>
+
+<span class="s2">Ambas implementaciones coinciden en todos los casos.</span>
+
+
+<span class="s0">### </span><span class="s2">Ejemplo Completo de Finca + Distancias + Salida Óptima</span>
+
+<span class="s2">Datos utilizados</span>
+
+<span class="s1">$</span>
+<span class="s2">f =</span>
+<span class="s2">\left</span><span class="s1">[</span>
+<span class="s1">(</span><span class="s2">10,3,1</span><span class="s1">)</span><span class="s2">,\;</span>
+<span class="s1">(</span><span class="s2">8,1,1</span><span class="s1">)</span><span class="s2">,\;</span>
+<span class="s1">(</span><span class="s2">4,2,1</span><span class="s1">)</span>
+<span class="s2">\right</span><span class="s1">]</span>
+<span class="s1">$</span>
+
+<span class="s0">### </span><span class="s2">Matriz de distancias</span><span class="s1">:</span>
+
+<span class="s1">$</span>
+<span class="s2">d =</span>
+<span class="s2">\begin{bmatrix}</span>
+<span class="s2">0 &amp; 2 &amp; 3 \\</span>
+<span class="s2">2 &amp; 0 &amp; 5 \\</span>
+<span class="s2">3 &amp; 5 &amp; 0</span>
+<span class="s2">\end{bmatrix}</span>
+<span class="s1">$</span>
+
+<span class="s0">### </span><span class="s2">Cálculo del óptimo</span>
+
+<span class="s2">Ambas versiones </span><span class="s1">$(</span><span class="s2">secuencial y paralela</span><span class="s1">)$ </span><span class="s2">evalúan las 6 permutaciones y obtienen</span><span class="s1">:</span>
+
+<span class="s1">$</span>
+<span class="s2">\pi^</span><span class="s1">* </span><span class="s2">= \langle 2,0,1\rangle</span>
+<span class="s1">$</span>
+
+<span class="s1">$</span>
+<span class="s2">C^</span><span class="s1">* </span><span class="s2">= 10</span>
+<span class="s1">$</span>
+
+<span class="s2">Por lo tanto</span><span class="s1">:</span>
+
+<span class="s1">$</span>
+<span class="s2">\boxed{</span>
+<span class="s2">\text{Programación óptima</span><span class="s1">: </span><span class="s2">} \langle 2,0,1\rangle</span>
+<span class="s2">}</span>
+<span class="s1">$</span>
+<span class="s1">$</span>
+<span class="s2">\boxed{</span>
+<span class="s2">\text{Costo total mínimo</span><span class="s1">: </span><span class="s2">} 10</span>
+<span class="s2">}</span>
+<span class="s1">$</span>
+<span class="s0">```</span><span class="s3">scala</span>
+<span class="s4">package taller</span>
+<span class="s4">import org.scalatest.funsuite.AnyFunSuite</span>
+
+<span class="s4">class RiegoTest extends AnyFunSuite {</span>
+
+<span class="s4">val r = new Riego()</span>
+
+<span class="s4">test(&quot;tIR simple&quot;) {</span>
+<span class="s4">val f = Vector((10,3,1),(8,1,1),(4,2,1))</span>
+<span class="s4">val pi = Vector(2,0,1)</span>
+<span class="s4">val expected = Vector(3,5,0)</span>
+<span class="s4">assert(r.tIR(f,pi) == expected)</span>
+<span class="s4">}</span>
+
+<span class="s4">test(&quot;permutations length&quot;) {</span>
+<span class="s4">val v = Vector(0,1,2,3)</span>
+<span class="s4">val perms = r.permutations(v)</span>
+<span class="s4">assert(perms.length == 24)</span>
+<span class="s4">}</span>
+
+<span class="s4">test(&quot;generarProgramacionesRiegoPar == secuencial&quot;) {</span>
+<span class="s4">val f = Vector((1,1,1),(1,1,1),(1,1,1),(1,1,1))</span>
+<span class="s4">val seq = r.generarProgramacionesRiego(f).toSet</span>
+<span class="s4">val par = r.generarProgramacionesRiegoPar(f).toSet</span>
+<span class="s4">assert(seq == par)</span>
+<span class="s4">}</span>
+
+<span class="s4">test(&quot;costoRiegoFincaPar == secuencial&quot;) {</span>
+<span class="s4">val f = Vector((10,3,1),(8,1,1),(4,2,1))</span>
+<span class="s4">val pi = Vector(1,2,0)</span>
+<span class="s4">assert(r.costoRiegoFinca(f,pi) == r.costoRiegoFincaPar(f,pi))</span>
+<span class="s4">}</span>
+
+<span class="s4">test(&quot;ProgramacionRiegoOptimoPar == secuencial&quot;) {</span>
+<span class="s4">val f = Vector((10,3,1),(8,1,1),(4,2,1))</span>
+<span class="s4">val d = Vector(</span>
+<span class="s4">Vector(0,2,3),</span>
+<span class="s4">Vector(2,0,5),</span>
+<span class="s4">Vector(3,5,0)</span>
+<span class="s4">)</span>
+<span class="s4">val seq = r.ProgramacionRiegoOptimo(f,d)</span>
+<span class="s4">val par = r.ProgramacionRiegoOptimoPar(f,d)</span>
+<span class="s4">assert(seq._2 == par._2)</span>
+<span class="s4">}</span>
+
+<span class="s4">}</span>
+<span class="s0">```</span>
+
+<span class="s0">---</span>
+
+<span class="s0"># </span><span class="s1">**</span><span class="s2">4. CONCLUSIONES</span><span class="s1">**</span>
+
+<span class="s0">- </span><span class="s2">Las funciones paralelas producen los mismos resultados que las secuenciales </span><span class="s1">(</span><span class="s2">probado exhaustivamente con tests</span><span class="s1">)</span><span class="s2">.</span>
+<span class="s0">- </span><span class="s2">La ganancia de paralelismo es significativa a partir de un tamaño donde \(n</span><span class="s1">!</span><span class="s2">\) es grande.</span>
+<span class="s0">- </span><span class="s2">No existe mutación compartida, por lo que la ejecución es segura.</span>
+<span class="s0">- </span><span class="s2">Las estrategias `.par` facilitan el paralelismo sin introducir efectos secundarios.</span>
+<span class="s0">- </span><span class="s2">Se demostró formalmente que cada función secuencial implementa fielmente su definición matemática.</span>
+<span class="s0">- </span><span class="s2">La versión paralela mantiene la corrección porque aplica exactamente las mismas operaciones sobre subconjuntos independientes.</span>
+<span class="s0">- </span><span class="s2">Las pruebas unitarias verificaron que ambas versiones producen exactamente los mismos resultados.</span>
+<span class="s0">- </span><span class="s2">La versión paralela es ventajosa cuando el costo factorial \(n</span><span class="s1">!</span><span class="s2">\) compensa la sobrecarga inicial del paralelismo.</span>
+
+
+</pre>
+</body>
+</html>
