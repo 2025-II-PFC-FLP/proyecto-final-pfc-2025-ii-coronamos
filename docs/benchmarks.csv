@@ -1,0 +1,4 @@
+n,genSeqMean,genSeqStd,genParMean,genParStd,evalSeqMean,evalSeqStd,evalParMean,evalParStd,totalSeqMean,totalSeqStd,totalParMean,totalParStd,speedupPercent
+6,4,020,1,010,2,439,0,934,19,631,3,328,19,905,11,000,6,129,0,366,12,329,0,978,-50,286
+7,10,895,1,326,7,124,2,407,50,988,8,955,34,798,8,557,40,303,4,040,34,021,8,560,18,463
+8,55,071,6,272,17,180,1,648,272,927,6,773,89,864,15,319,291,741,9,000,132,351,26,915,120,430

@@ -1,4 +1,5 @@
 package taller
+
 import scala.collection.parallel.CollectionConverters._
 
 class Riego {
@@ -13,7 +14,6 @@ class Riego {
   def treg(f: Finca, i: Int): Int = f(i)._2
   def prio(f: Finca, i: Int): Int = f(i)._3
 
-
   def progToPermPure(pi: ProgRiego): Vector[Int] = {
     val pairs = pi.zipWithIndex
     pairs.sortBy(_._1).map(_._2)
@@ -26,10 +26,8 @@ class Riego {
     }
   }
 
-
   def tIR_fromPerm(f: Finca, perm: Vector[Int]): TiempoInicioRiego = {
     val n = f.length
-
     val timesByTurn: Vector[Int] = {
       def go(j: Int, acc: Int, accVec: Vector[Int]): Vector[Int] =
         if (j >= n) accVec
@@ -40,7 +38,6 @@ class Riego {
         }
       go(0, 0, Vector.empty)
     }
-
     val indexToTurn = progIndexOfPerm(perm)
     Vector.tabulate(n)(i => timesByTurn(indexToTurn(i)))
   }
@@ -54,11 +51,8 @@ class Riego {
     val t = tIR(f, pi)(i)
     val tsi = tsup(f, i)
     val tri = treg(f, i)
-
-    if (tsi - tri >= t)
-      tsi - (t + tri)
-    else
-      prio(f, i) * ((t + tri) - tsi)
+    if (tsi - tri >= t) tsi - (t + tri)
+    else prio(f, i) * ((t + tri) - tsi)
   }
 
   def costoRiegoFinca(f: Finca, pi: ProgRiego): Int = {
@@ -68,23 +62,16 @@ class Riego {
   def costoMovilidad(f: Finca, pi: ProgRiego, d: Distancia): Int = {
     val perm = progToPermPure(pi)
     val n = perm.length
-
     if (n <= 1) 0
-    else {
-      (0 until (n - 1)).toVector
-        .map(j => d(perm(j))(perm(j + 1)))
-        .sum
-    }
+    else (0 until (n - 1)).toVector.map(j => d(perm(j))(perm(j + 1))).sum
   }
 
   def permutations[T](v: Vector[T]): Vector[Vector[T]] = {
     if (v.isEmpty) Vector(Vector())
-    else {
-      v.indices.toVector.flatMap { i =>
-        val elem = v(i)
-        val resto = v.patch(i, Nil, 1)
-        permutations(resto).map(elem +: _)
-      }
+    else v.indices.toVector.flatMap { i =>
+      val elem = v(i)
+      val resto = v.patch(i, Nil, 1)
+      permutations(resto).map(elem +: _)
     }
   }
 
@@ -99,74 +86,58 @@ class Riego {
 
   def ProgramacionRiegoOptimo(f: Finca, d: Distancia): (ProgRiego, Int) = {
     val todas = generarProgramacionesRiego(f)
-
     val evaluaciones = todas.map { pi =>
       val total = costoRiegoFinca(f, pi) + costoMovilidad(f, pi, d)
       (pi, total)
     }
-
     evaluaciones.minBy(_._2)
   }
+
   def costoRiegoFincaPar(f: Finca, pi: ProgRiego): Int = {
-    import scala.collection.parallel.CollectionConverters._
-
-    val perm    = progToPermPure(pi)
+    val perm = progToPermPure(pi)
     val tstarts = tIR_fromPerm(f, perm)
-
     (0 until f.length).par.map { i =>
-      val t   = tstarts(i)
-      val ts  = tsup(f,i)
-      val tr  = treg(f,i)
-      val p   = prio(f,i)
-
+      val t = tstarts(i)
+      val ts = tsup(f, i)
+      val tr = treg(f, i)
+      val p = prio(f, i)
       if (ts - tr >= t) ts - (t + tr)
       else p * ((t + tr) - ts)
     }.sum
   }
 
   def costoMovilidadPar(f: Finca, pi: ProgRiego, d: Distancia): Int = {
-    import scala.collection.parallel.CollectionConverters._
-
     val perm = progToPermPure(pi)
-    val n    = perm.length
-
+    val n = perm.length
     if (n <= 1) 0
-    else {
-      (0 until n-1).par.map(j => d(perm(j))(perm(j+1))).sum
-    }
+    else (0 until (n - 1)).par.map(j => d(perm(j))(perm(j + 1))).sum
   }
+
   def generarProgramacionesRiegoPar(f: Finca): Vector[ProgRiego] = {
     val base = (0 until f.length).toVector
 
     def perms(v: Vector[Int]): Vector[Vector[Int]] =
       if (v.isEmpty) Vector(Vector())
-      else
-        v.indices.toVector.flatMap { i =>
-          val elem = v(i)
-          val resto = v.patch(i, Nil, 1)
-          perms(resto).map(elem +: _)
-        }
+      else v.indices.toVector.flatMap { i =>
+        val elem = v(i)
+        val resto = v.patch(i, Nil, 1)
+        perms(resto).map(elem +: _)
+      }
 
-    val topLevel: Vector[Vector[Int]] =
-      base.indices.par
-        .flatMap { i =>
-          val elem = base(i)
-          val resto = base.patch(i, Nil, 1)
-          perms(resto).map(elem +: _)
-        }
-        .toVector
+    val topLevel = base.par.flatMap { i =>
+      val resto = base.patch(i, Nil, 1)
+      perms(resto).map(i +: _)
+    }.toVector
 
     topLevel.map(permToProg)
   }
 
   def ProgramacionRiegoOptimoPar(f: Finca, d: Distancia): (ProgRiego, Int) = {
     val progs: Vector[ProgRiego] = generarProgramacionesRiegoPar(f)
-
     val costos = progs.par.map { pi =>
       val costoTotal = costoRiegoFincaPar(f, pi) + costoMovilidadPar(f, pi, d)
       (pi, costoTotal)
     }
-
     costos.minBy(_._2)
   }
 
