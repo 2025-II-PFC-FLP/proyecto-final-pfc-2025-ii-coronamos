@@ -17,7 +17,7 @@ object BenchManual {
     def speedupPercentMean: Double = if (totalPar.mean == 0.0) 0.0 else (speedupMean - 1.0) * 100.0
   }
 
-  // Generadores
+
   def genFinca(n: Int): Riego#Finca =
     Vector.tabulate(n)(i => (10 + (i % 7), 1 + (i % 3), 1 + (i % 5)))
 
@@ -62,23 +62,23 @@ object BenchManual {
       val f = genFinca(n)
       val d = genDist(n)
 
-      // 1) medición de generación de permutaciones (seq / par)
+
       val genSeqStats = timeTrials(reps) { r.generarProgramacionesRiego(f) }
       val genParStats = timeTrials(reps) { r.generarProgramacionesRiegoPar(f) }
 
-      // Para evaluación, generamos permutaciones secuencialmente y usamos esa lista
+
       val permsSeq: Vector[r.ProgRiego] = r.generarProgramacionesRiego(f)
 
       val evalSeqStats = timeTrials(reps) {
-        // evaluamos secuencialmente sobre la lista de permutaciones
+
         permsSeq.map(pi => r.costoRiegoFinca(f, pi) + r.costoMovilidad(f, pi, d)).sum
       }
       val evalParStats = timeTrials(reps) {
-        // usar .par aquí; CollectionConverters import habilita esto
+
         permsSeq.par.map(pi => r.costoRiegoFincaPar(f, pi) + r.costoMovilidadPar(f, pi, d)).sum
       }
 
-      // Total: medir ProgramacionRiegoOptimo completo
+
       val totalSeqStats = timeTrials(reps) { r.ProgramacionRiegoOptimo(f, d) }
       val totalParStats = timeTrials(reps) { r.ProgramacionRiegoOptimoPar(f, d) }
 
@@ -108,7 +108,7 @@ object BenchManual {
       case e: Exception => println(s"[ERROR] No se pudo escribir el archivo: ${e.getMessage}")
     } finally bw.close()
 
-    // Amdahl estimate
+
     println("\nEstimación de p (Ley de Amdahl) usando número de cores detectado:")
     rows.foreach { r =>
       val s = if (r.totalPar.mean == 0.0) 1.0 else r.totalSeq.mean / r.totalPar.mean

@@ -227,7 +227,6 @@ class RiegoTest extends AnyFunSuite {
   }
 
 
-  // costoMovilidadPar
   test("costoMovilidadPar — coincide (1)") {
     val d = Vector(Vector(0,5,3),Vector(5,0,4),Vector(3,4,0))
     val f = Vector.fill(3)((1,1,1))
@@ -268,7 +267,6 @@ class RiegoTest extends AnyFunSuite {
   }
 
 
-  // generarProgramacionesRiegoPar (5 tests)
   test("generarProgramacionesRiegoPar — coincide con secuencial (1)") {
     val f = Vector((10,3,1),(8,1,2),(4,2,3))
     assert(r.generarProgramacionesRiegoPar(f).toSet == r.generarProgramacionesRiego(f).toSet)
@@ -298,7 +296,6 @@ class RiegoTest extends AnyFunSuite {
   }
 
 
-  // ProgramacionRiegoOptimoPar (5 tests)
   test("ProgramacionRiegoOptimoPar — coincide con secuencial (1)") {
     val f = Vector((10,3,1),(8,1,1),(4,2,1))
     val d = Vector(Vector(0,2,4),Vector(2,0,6),Vector(4,6,0))
